@@ -31,7 +31,7 @@ setup(
     description="CLI tool to publish data from PG database ",
     entry_points={
         'console_scripts': [
-            'reims_publisher=reims_publisher.cli:main',
+            'publish=reims_publisher.cli:main',
         ],
     },
     install_requires=requirements,

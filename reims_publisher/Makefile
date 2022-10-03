@@ -1,5 +1,5 @@
 run: venv/requirements.timestamp
-	venv/bin/reims_publisher
+	venv/bin/publish
 
 venv/requirements.timestamp: venv/venv.timestamp requirements.txt
 	venv/bin/pip3 install -r requirements.txt

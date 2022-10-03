@@ -6,7 +6,6 @@ import pytest
 
 from click.testing import CliRunner
 
-from reims_publisher import reims_publisher
 from reims_publisher import cli
 
 
