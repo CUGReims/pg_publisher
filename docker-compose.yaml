@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  publisher:
+    image: camptocamp/reims_publisher:latest
+    volumes:
+      - ./reims_publisher/reims_publisher:/app/reims_publisher
+    command: reims_publisher
