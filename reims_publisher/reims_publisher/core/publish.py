@@ -1,7 +1,4 @@
-import io
-import multiprocessing
 import subprocess
-import tempfile
 from typing import List, Optional
 
 
@@ -19,16 +16,14 @@ def publish(
     )
 
     for schema in schemas:
-        receiver.stdin.write("DROP SCHEMA IF EXISTS {} CASCADE;".format(schema).encode("utf8"))
+        receiver.stdin.write(
+            "DROP SCHEMA IF EXISTS {} CASCADE;".format(schema).encode("utf8")
+        )
 
-    sender = subprocess.Popen(
-        [
-            "pg_dump"
-        ] + [
-            arg for schema in schemas for arg in ["-n", schema]
-        ] + [
-            src_conn_string
-        ],
+    subprocess.Popen(
+        ["pg_dump"]
+        + [arg for schema in schemas for arg in ["-n", schema]]
+        + [src_conn_string],
         stdout=receiver.stdin,
         stderr=subprocess.PIPE,
     )
