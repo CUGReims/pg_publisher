@@ -1,15 +1,45 @@
 version: '3.8'
 
+volumes:
+  src_postgresql_data:
+  dst_postgresql_data:
+
 services:
+  src_db:
+    image: camptocamp/postgres:12
+    volumes:
+      - ./db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - src_postgresql_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${SRC_PGPASSWORD}
+      POSTGRES_DB: ${SRC_PGDATABASE}
+      POSTGRES_USER: ${SRC_PGUSER}
+    command:
+      -c log_statement=all
+
+  dst_db:
+    image: camptocamp/postgres:12
+    volumes:
+      - ./db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - dst_postgresql_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${DST_PGPASSWORD}
+      POSTGRES_DB: ${DST_PGDATABASE}
+      POSTGRES_USER: ${DST_PGUSER}
+    command:
+      -c log_statement=all
+
   publisher:
     image: camptocamp/reims_publisher:latest
     volumes:
       - ./reims_publisher/reims_publisher:/app/reims_publisher
-    command: publish
+    command: 'sh -c "exit 0"'
 
   tester:
     image: camptocamp/reims_publisher:latest
+    env_file:
+      - .env
     volumes:
       - ./reims_publisher/reims_publisher:/app/reims_publisher
       - ./reims_publisher:/src
-    command: pytest -vv /src/tests
+    command: sleep infinity
