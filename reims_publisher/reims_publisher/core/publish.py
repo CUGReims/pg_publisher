@@ -8,6 +8,7 @@ def publish(
     schemas: Optional[List[str]] = None,
     tables: Optional[List[str]] = None,
     views: Optional[List[str]] = None,
+    materialized_views: Optional[List[str]] = None,
     force: Optional[bool] = False,
 ):
     receiver = subprocess.Popen(
