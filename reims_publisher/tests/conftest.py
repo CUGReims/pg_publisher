@@ -3,7 +3,7 @@ from time import sleep
 
 import psycopg2
 import pytest
-
+from tests.fixtures.schema_table_view import *
 
 def get_connection(conn_str):
     conn = None
