@@ -1,4 +1,4 @@
-def get_schemas_dependencies(schemas):
+def get_schemas_dependencies(schemas: [str]) -> [dict]:
     joined_schemas = ", ".join(f"'{schema}'" for schema in schemas)
     return """
     WITH cte as (SELECT dependent_ns.nspname as dependent_schema,
@@ -13,9 +13,9 @@ def get_schemas_dependencies(schemas):
     AND pg_depend.refobjsubid = pg_attribute.attnum
     JOIN pg_namespace dependent_ns ON dependent_ns.oid = dependent_view.relnamespace
     JOIN pg_namespace source_ns ON source_ns.oid = source_table.relnamespace)
-    SELECT DISTINCT 'Current Schema', dependent_schema, 'dependent_view',
+    SELECT DISTINCT 'current_schema', dependent_schema, 'dependent_view',
      dependent_view, 'source_schema', source_schema, 'source_table', source_table from CTE
-    WHERE cte.dependent_schema <> cte.source_schema and cte.dependent_schema in ('schema1');
+    WHERE cte.dependent_schema <> cte.source_schema and cte.dependent_schema in ({});
     """.format(
         joined_schemas
     )
