@@ -45,12 +45,12 @@ class SchemaQuerier:
             return views
 
     @staticmethod
-    def get_mat_views_from_schema(
+    def get_materialized_views_from_schema(
         database_connection: object, schema_name: str
     ) -> [str]:
         with database_connection.cursor() as cursor:
             cursor.execute(
-                "SELECT matviewname, definition FROM"
+                "SELECT schemaname, matviewname, definition FROM"
                 " pg_matviews WHERE"
                 " schemaname = '{schema}';".format(schema=schema_name)
             )
@@ -58,14 +58,14 @@ class SchemaQuerier:
             return mat_views
 
     @staticmethod
-    def get_dependant_schemas_objects(database_connection: object, schemas):
+    def get_dependant_schemas_objects(database_connection: object, schemas) -> [dict]:
         with database_connection.cursor() as cursor:
             cursor.execute(get_schemas_dependencies(schemas))
             dependencies = cursor.fetchall()
 
         dependencies_dict = [
-            dict(zip(dependencie[::2], dependencie[1::2]))
-            for dependencie in dependencies
+            dict(zip(dependency[::2], dependency[1::2]))
+            for dependency in dependencies
         ]
         return dependencies_dict
 
@@ -73,8 +73,8 @@ class SchemaQuerier:
 class InformationSchemaChecker:
     def __init__(self, src_conn: object, dst_conn: object):
         """
-        :param src_conn_string: source database connection string
-        :param dst_conn_string: destination database connection string
+        :param src_conn: source database connection
+        :param dst_conn: destination database connection
         """
         self.src_conn = src_conn
         self.dst_conn = dst_conn
@@ -97,5 +97,5 @@ class InformationSchemaChecker:
     def get_dst_views_from_schema(self, schema_name) -> [str]:
         return SchemaQuerier.get_views_from_schema(self.dst_conn, schema_name)
 
-    def get_dst_schemas_dependencies(self, schemas):
+    def get_dst_schemas_dependencies(self, schemas) -> [dict]:
         return SchemaQuerier.get_dependant_schemas_objects(schemas)

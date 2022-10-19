@@ -1,8 +1,8 @@
 import pytest
 
 
-@pytest.mark.usefixtures("schema")
-def test_publish_schema_success(src_conn_string, dst_conn_string, schema, dst_conn):
+@pytest.mark.usefixtures("src_table")
+def test_publish_schema_success(src_conn_string, dst_conn_string, src_table, dst_conn):
     from reims_publisher.core.publish import publish
 
     publish(src_conn_string, dst_conn_string, schemas=["schema"])
