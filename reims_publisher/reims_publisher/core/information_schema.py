@@ -1,4 +1,8 @@
-from reims_publisher.core.sql_queries import get_schemas_dependencies, get_tables_view_dependencies, get_tables_fk_dependencies
+from reims_publisher.core.sql_queries import (
+    get_schemas_dependencies,
+    get_tables_view_dependencies,
+    get_tables_fk_dependencies,
+)
 
 
 class SchemaQuerier:
@@ -64,8 +68,7 @@ class SchemaQuerier:
             dependencies = cursor.fetchall()
 
         dependencies_dict = [
-            dict(zip(dependency[::2], dependency[1::2]))
-            for dependency in dependencies
+            dict(zip(dependency[::2], dependency[1::2])) for dependency in dependencies
         ]
         return dependencies_dict
 
@@ -88,7 +91,7 @@ class SchemaQuerier:
             for dependency in dependencies_fk
         ]
 
-        return {'views': dependencies_views_dict, 'tables': dependencies_fk_dict }
+        return {"views": dependencies_views_dict, "tables": dependencies_fk_dict}
 
 
 class InformationSchemaChecker:

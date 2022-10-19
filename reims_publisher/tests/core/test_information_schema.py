@@ -26,7 +26,12 @@ def test_schema_querier_get_views_from_schema(views, src_conn):
 
 
 @pytest.mark.usefixtures("materialized_views")
-def test_schema_querier_get_materialized_views_from_schema(materialized_views, src_conn):
+def test_schema_querier_get_materialized_views_from_schema(
+    materialized_views, src_conn
+):
     from reims_publisher.core.information_schema import SchemaQuerier
-    existing_views = SchemaQuerier.get_materialized_views_from_schema(src_conn, "schema1")
+
+    existing_views = SchemaQuerier.get_materialized_views_from_schema(
+        src_conn, "schema1"
+    )
     assert len(existing_views) == 1

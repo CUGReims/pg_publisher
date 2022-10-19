@@ -18,7 +18,7 @@ def test_schema_querier_get_table_dependencies(views, dst_constraint_table, dst_
     dependencies = SchemaQuerier.get_dependant_tables_objects(
         dst_conn, ["schema2.table1"]
     )
-    assert dependencies['views'][0]['dependent_schema'] == 'schema1'
-    assert dependencies['views'][0]['dependent_view'] == 'view2'
+    assert dependencies["views"][0]["dependent_schema"] == "schema1"
+    assert dependencies["views"][0]["dependent_view"] == "view2"
 
-    assert dependencies['tables'][0]['dependent_table'] == 'schema1.table_with_fk1'
+    assert dependencies["tables"][0]["dependent_table"] == "schema1.table_with_fk1"

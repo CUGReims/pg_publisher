@@ -27,7 +27,9 @@ def dst_schema(dst_conn):
 def src_table(src_conn, src_schema):
     with src_conn:
         with src_conn.cursor() as cursor:
-            cursor.execute("CREATE TABLE schema.table (id serial PRIMARY KEY, num integer, data varchar);")
+            cursor.execute(
+                "CREATE TABLE schema.table (id serial PRIMARY KEY, num integer, data varchar);"
+            )
             cursor.execute(
                 "INSERT INTO schema.table (num, data) VALUES (%s, %s);",
                 (100, "abc'def"),
@@ -79,15 +81,19 @@ def tables(src_conn, dst_conn, schemas):
                 cursor.execute("DROP TABLE schema2.table1 CASCADE;")
                 cursor.execute("DROP TABLE schema2.table2 CASCADE;")
 
+
 @pytest.fixture
 def dst_constraint_table(dst_conn, schemas):
     with dst_conn:
         with dst_conn.cursor() as cursor:
-            cursor.execute("CREATE TABLE schema1.table_with_fk1 (id serial PRIMARY KEY, num integer, fk int references schema2.table1(id))")
+            cursor.execute(
+                "CREATE TABLE schema1.table_with_fk1 (id serial PRIMARY KEY, num integer, fk int references schema2.table1(id))"
+            )
     yield
     with dst_conn:
         with dst_conn.cursor() as cursor:
             cursor.execute("DROP TABLE schema1.table_with_fk1 CASCADE;")
+
 
 @pytest.fixture
 def views(src_conn, dst_conn, tables):

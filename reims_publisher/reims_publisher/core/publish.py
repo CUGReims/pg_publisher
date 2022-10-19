@@ -1,6 +1,7 @@
 import subprocess
 from typing import List, Optional
 
+
 def publish(
     src_conn_string: str,
     dst_conn_string: str,
@@ -27,7 +28,7 @@ def publish(
             + [src_conn_string],
             stdout=receiver.stdin,
             stderr=subprocess.PIPE,
-            )
+        )
 
     if tables:
         for table in tables:
@@ -43,7 +44,7 @@ def publish(
             + [src_conn_string],
             stdout=receiver.stdin,
             stderr=subprocess.PIPE,
-            )
+        )
 
     if views:
         for view in views or []:
@@ -59,14 +60,18 @@ def publish(
             + [src_conn_string],
             stdout=receiver.stdin,
             stderr=subprocess.PIPE,
-            )
+        )
 
     if materialized_views:
         for mat_view in materialized_views or []:
             sql_query = (
-                "DROP MATERIALIZED VIEW IF EXISTS {} CASCADE;".format(mat_view).encode("utf8")
+                "DROP MATERIALIZED VIEW IF EXISTS {} CASCADE;".format(mat_view).encode(
+                    "utf8"
+                )
                 if force
-                else "DROP MATERIALIZED VIEW IF EXISTS {};".format(mat_view).encode("utf8")
+                else "DROP MATERIALIZED VIEW IF EXISTS {};".format(mat_view).encode(
+                    "utf8"
+                )
             )
             receiver.stdin.write(sql_query)
         subprocess.Popen(
@@ -75,6 +80,6 @@ def publish(
             + [src_conn_string],
             stdout=receiver.stdin,
             stderr=subprocess.PIPE,
-            )
+        )
 
     receiver.communicate()
