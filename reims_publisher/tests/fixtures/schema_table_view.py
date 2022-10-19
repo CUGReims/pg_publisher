@@ -2,13 +2,32 @@ import pytest
 
 
 @pytest.fixture
-def schema(src_conn):
+def src_schema(src_conn):
     with src_conn:
         with src_conn.cursor() as cursor:
             cursor.execute("CREATE SCHEMA schema;")
-            cursor.execute(
-                "CREATE TABLE schema.table (id serial PRIMARY KEY, num integer, data varchar);"
-            )
+    yield
+    with src_conn:
+        with src_conn.cursor() as cursor:
+            cursor.execute("DROP SCHEMA schema CASCADE;")
+
+
+@pytest.fixture
+def dst_schema(dst_conn):
+    with dst_conn:
+        with dst_conn.cursor() as cursor:
+            cursor.execute("CREATE SCHEMA schema;")
+    yield
+    with dst_conn:
+        with dst_conn.cursor() as cursor:
+            cursor.execute("DROP SCHEMA schema CASCADE;")
+
+
+@pytest.fixture
+def src_table(src_conn, src_schema):
+    with src_conn:
+        with src_conn.cursor() as cursor:
+            cursor.execute("CREATE TABLE schema.table (id serial PRIMARY KEY, num integer, data varchar);")
             cursor.execute(
                 "INSERT INTO schema.table (num, data) VALUES (%s, %s);",
                 (100, "abc'def"),
@@ -16,7 +35,7 @@ def schema(src_conn):
     yield
     with src_conn:
         with src_conn.cursor() as cursor:
-            cursor.execute("DROP SCHEMA schema CASCADE;")
+            cursor.execute("DROP TABLE schema.table CASCADE;")
 
 
 @pytest.fixture
@@ -96,7 +115,7 @@ def materialized_views(src_conn, dst_conn, tables):
                 cursor.execute(
                     "CREATE MATERIALIZED VIEW schema1.viewmat1 as select id, num FROM schema1.table1;"
                 )
-
+    yield
     for conn in [src_conn, dst_conn]:
         with conn:
             with conn.cursor() as cursor:
