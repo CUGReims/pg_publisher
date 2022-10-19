@@ -1,4 +1,4 @@
-from reims_publisher.core.sql_queries import get_schemas_dependencies
+from reims_publisher.core.sql_queries import get_schemas_dependencies, get_tables_view_dependencies, get_tables_fk_dependencies
 
 
 class SchemaQuerier:
@@ -68,6 +68,27 @@ class SchemaQuerier:
             for dependency in dependencies
         ]
         return dependencies_dict
+
+    @staticmethod
+    def get_dependant_tables_objects(database_connection: object, tables) -> [dict]:
+        with database_connection.cursor() as cursor:
+            cursor.execute(get_tables_view_dependencies(tables))
+            dependencies_views = cursor.fetchall()
+
+        with database_connection.cursor() as cursor:
+            cursor.execute(get_tables_fk_dependencies(tables))
+            dependencies_fk = cursor.fetchall()
+
+        dependencies_views_dict = [
+            dict(zip(dependency[::2], dependency[1::2]))
+            for dependency in dependencies_views
+        ]
+        dependencies_fk_dict = [
+            dict(zip(dependency[::2], dependency[1::2]))
+            for dependency in dependencies_fk
+        ]
+
+        return {'views': dependencies_views_dict, 'tables': dependencies_fk_dict }
 
 
 class InformationSchemaChecker:
