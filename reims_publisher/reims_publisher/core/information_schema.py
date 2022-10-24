@@ -18,7 +18,7 @@ class SchemaQuerier:
                 " information_schema.tables WHERE"
                 " table_schema not in ('pg_catalog, information_schema')"
             )
-            schemas = cursor.fetchall()
+            schemas = [r[0] for r in cursor.fetchall()]
             return schemas
 
     @staticmethod
@@ -93,33 +93,3 @@ class SchemaQuerier:
 
         return {"views": dependencies_views_dict, "tables": dependencies_fk_dict}
 
-
-class InformationSchemaChecker:
-    def __init__(self, src_conn: object, dst_conn: object):
-        """
-        :param src_conn: source database connection
-        :param dst_conn: destination database connection
-        """
-        self.src_conn = src_conn
-        self.dst_conn = dst_conn
-
-    def get_src_schemas(self) -> [str]:
-        return SchemaQuerier.get_schemas(self.src_conn)
-
-    def get_dst_schemas(self) -> [str]:
-        return SchemaQuerier.get_schemas(self.dst_conn)
-
-    def get_src_tables_from_schema(self, schema_name) -> [str]:
-        return SchemaQuerier.get_tables_from_schema(self.src_conn, schema_name)
-
-    def get_dst_tables_from_schema(self, schema_name) -> [str]:
-        return SchemaQuerier.get_tables_from_schema(self.dst_conn, schema_name)
-
-    def get_src_views_from_schema(self, schema_name) -> [str]:
-        return SchemaQuerier.get_views_from_schema(self.src_conn, schema_name)
-
-    def get_dst_views_from_schema(self, schema_name) -> [str]:
-        return SchemaQuerier.get_views_from_schema(self.dst_conn, schema_name)
-
-    def get_dst_schemas_dependencies(self, schemas) -> [dict]:
-        return SchemaQuerier.get_dependant_schemas_objects(schemas)

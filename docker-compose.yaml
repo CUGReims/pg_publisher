@@ -46,4 +46,5 @@ services:
     volumes:
       - ./reims_publisher/reims_publisher:/app/reims_publisher
       - ./reims_publisher:/src
+      - ./.pg_service.conf:/app/.pg_service.conf
     command: sleep infinity
