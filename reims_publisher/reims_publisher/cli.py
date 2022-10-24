@@ -8,6 +8,7 @@ from reims_publisher.core.database_manager import (
 )
 from reims_publisher.core.information_schema import SchemaQuerier
 from reims_publisher.core.publish import publish
+from reims_publisher.core.logger import PublisherLogger
 
 BASIC_POSTGRES_OBJECTS = {
     "Schemas": "schemas",
@@ -23,6 +24,10 @@ def main(args=None):
     service_db_src = questionary.select(
         "Selection de la base de données source", choices=available_services
     ).ask()
+
+    conn_src = get_conn_from_service_name(service_db_src)["conn"]
+    src_conn_string = get_conn_from_service_name(service_db_src)["conn_str"]
+
     # remove selected service
     available_services = list(
         filter(lambda x: x is not service_db_src, available_services)
@@ -30,14 +35,16 @@ def main(args=None):
     service_db_dst = questionary.select(
         "Selection de la base de données de destination", choices=available_services
     ).ask()
+
+    conn_dst = get_conn_from_service_name(service_db_dst)["conn"]
+    dst_conn_string = get_conn_from_service_name(service_db_dst)["conn_str"]
+
+    logger = PublisherLogger(conn_src)
+
     object = questionary.select(
         "Que voulez-vous publier ?", choices=list(BASIC_POSTGRES_OBJECTS.keys())
     ).ask()
-
-    conn_src = get_conn_from_service_name(service_db_src)["conn"]
-    src_conn_string = get_conn_from_service_name(service_db_src)["conn_str"]
-    conn_dst = get_conn_from_service_name(service_db_dst)["conn"]
-    dst_conn_string = get_conn_from_service_name(service_db_dst)["conn_str"]
+    logger.object_type = object
 
     object = BASIC_POSTGRES_OBJECTS.get(object)
     if object == "schemas":
@@ -47,6 +54,7 @@ def main(args=None):
             choices=SchemaQuerier.get_schemas(conn_src),
             validate=choice_checker,
         ).ask()
+        logger.object_names = schemas
         dependencies = SchemaQuerier.get_dependant_schemas_objects(conn_dst, schemas)
         if dependencies:
             questionary.print(
@@ -58,10 +66,13 @@ def main(args=None):
             force = questionary.confirm("Voulez vous forcer la suppresion?").ask()
 
         publish(src_conn_string, dst_conn_string, schemas=schemas, force=force)
+        logger.success = True
+        logger.insert_log_row()
 
 
 def choice_checker(e):
     return "Au moins un élément doit être sélectionné " if len(e) == 0 else True
+
 
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover
