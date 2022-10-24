@@ -92,4 +92,3 @@ class SchemaQuerier:
         ]
 
         return {"views": dependencies_views_dict, "tables": dependencies_fk_dict}
-

@@ -81,5 +81,4 @@ def publish(
             stdout=receiver.stdin,
             stderr=subprocess.PIPE,
         )
-
     receiver.communicate()
