@@ -17,7 +17,7 @@ def test_publish_schema_success(src_conn_string, dst_conn_string, src_table, dst
 
 @pytest.mark.usefixtures("dst_schema")
 @pytest.mark.usefixtures("src_table")
-def test_publish_table_sucess(
+def test_publish_table_success(
     src_conn_string, dst_conn_string, src_table, dst_schema, dst_conn
 ):
     from reims_publisher.core.publish import publish

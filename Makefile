@@ -39,4 +39,4 @@ clean: ## Stop composition, remove containers and images
 	docker rmi camptocamp/reims_publisher:latest || true
 
 cli: ## Stop composition, remove containers and images
-	docker-compose exec -T --user `id -u`:`id -g` tester python /app/reims_publisher/cli.py
+	docker-compose exec --user `id -u`:`id -g` tester python /app/reims_publisher/cli.py

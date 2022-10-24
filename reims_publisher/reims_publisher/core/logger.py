@@ -95,7 +95,8 @@ class PublisherLogger:
         self._success = success
 
     def insert_log_row(self):
-        sql = """INSERT INTO logging.logging (utilisateur, src_db_service_name, dst_db_service_name, type_objet, nom_objets, succes, log_complet, raison_echec)
+        sql = """INSERT INTO logging.logging (utilisateur, src_db_service_name, dst_db_service_name,
+         type_objet, nom_objets, succes, log_complet, raison_echec)
         VALUES (
         '{user}',
         '{src_db}',

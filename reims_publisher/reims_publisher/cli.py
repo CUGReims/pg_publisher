@@ -19,7 +19,7 @@ BASIC_POSTGRES_OBJECTS = {
 
 
 @click.command()
-def main(args=None):
+def main():
     available_services = get_services()
     service_db_src = questionary.select(
         "Selection de la base de données source", choices=available_services

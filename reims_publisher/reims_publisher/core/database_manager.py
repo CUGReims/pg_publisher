@@ -5,7 +5,7 @@ from psycopg2 import connect
 def get_service_file():
     try:
         service_file = find()
-    except:
+    except FileNotFoundError:
         raise SystemExit(
             "Absence de fichier pgservice.conf, la variable d'environnement est-elle définie?"
         )

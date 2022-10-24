@@ -1,4 +1,4 @@
 Click==7.1.2
 psycopg2-binary==2.9.3
-pgtoolkit
-questionary
+pgtoolkit==0.23.0
+questionary==1.10.0
