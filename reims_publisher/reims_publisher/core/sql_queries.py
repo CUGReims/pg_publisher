@@ -25,7 +25,7 @@ def get_schemas_dependencies(schemas: [str]) -> [dict]:
 
 
 def get_tables_fk_dependencies(tables: [str]) -> [dict]:
-    joined_tables = ", ".join(f"'{schema}'" for schema in tables)
+    joined_tables = ", ".join(f"'{table}'" for table in tables)
     return """
     WITH cte as (
       SELECT la.attrelid::regclass AS referencing_table,
@@ -37,7 +37,8 @@ def get_tables_fk_dependencies(tables: [str]) -> [dict]:
       JOIN pg_attribute AS la ON la.attrelid = c.conrelid AND la.attnum = c.conkey[1]
       JOIN pg_attribute AS ra ON ra.attrelid = c.confrelid AND ra.attnum = c.confkey[1]
       )
-    SELECT 'dependent_table', referencing_table::varchar, 'type_of_constraint', referencing_column::varchar
+    SELECT 'schema_table', schema_table::varchar, 'dependent_table', referencing_table::varchar,
+    'type_of_constraint', referencing_column::varchar
     FROM cte
     WHERE cte.constraint_type = 'f' AND cte.schema_table::varchar in ({})""".format(
         joined_tables

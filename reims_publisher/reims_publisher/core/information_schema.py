@@ -34,7 +34,10 @@ class SchemaQuerier:
                 " information_schema.tables WHERE"
                 " table_schema = '{schema}';".format(schema=schema_name)
             )
-            tables = cursor.fetchall()
+            tables = [
+                "{schema}.{table}".format(schema=schema_name, table=table[0])
+                for table in cursor.fetchall()
+            ]
             return tables
 
     @staticmethod
@@ -92,3 +95,18 @@ class SchemaQuerier:
         ]
 
         return {"views": dependencies_views_dict, "tables": dependencies_fk_dict}
+
+    @staticmethod
+    def schema_exists(database_connection: object, schema_name: str) -> [bool]:
+        """
+        :param schema_name
+        :param database_connection:
+        :return: bool
+        """
+        with database_connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = '{}');".format(
+                    schema_name
+                )
+            )
+            return cursor.fetchone()[0]

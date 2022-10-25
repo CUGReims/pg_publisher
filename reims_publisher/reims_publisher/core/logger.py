@@ -5,7 +5,7 @@ from datetime import datetime
 
 class PublisherLogger:
     def __init__(self, conn):
-        self._path_to_log_file = None
+        self.path_to_log_file = None
         self._src_db = None
         self._dst_db = None
         self._success = False
@@ -20,8 +20,8 @@ class PublisherLogger:
 
     def create_log_file(self):
         date_time = datetime.now().strftime("%Y-%m-%d")
-        self._path_to_log_file = "/tmp/log{date_time}.log".format(date_time=date_time)
-        logging.basicConfig(filename=self._path_to_log_file, level=logging.INFO)
+        self.path_to_log_file = "/tmp/log{date_time}.log".format(date_time=date_time)
+        logging.basicConfig(filename=self.path_to_log_file, level=logging.INFO)
 
     def create_logging_schema(self):
         with self.conn:
@@ -56,12 +56,12 @@ class PublisherLogger:
         self._src_db = src_db
 
     @property
-    def src_db(self):
-        return self._src_db
+    def dst_db(self):
+        return self._dst_db
 
-    @src_db.setter
-    def src_db(self, src_db):
-        self._src_db = src_db
+    @dst_db.setter
+    def dst_db(self, dst_db):
+        self._dst_db = dst_db
 
     @property
     def object_type(self):
@@ -114,7 +114,7 @@ class PublisherLogger:
             object_type=self._object_type,
             object_names=self._object_names,
             success=self._success,
-            path_to_log_file=self._path_to_log_file,
+            path_to_log_file=self.path_to_log_file,
             fail_reason=self._fail_reason,
         )
         with self.conn:
