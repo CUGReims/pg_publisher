@@ -6,22 +6,33 @@ another.
 
 ## Getting Started
 
-```sh
-make build
-```
-
 ### Prerequisites
 
-Requires docker
+Requires docker and docker compose
 
 ### Installation
 
 1. Clone the repo
-```sh
+```shell
 git clone
+make build
 ```
 
 ## Usage
 
+```shell
+make up
+make generate_dummy_src_data # generates dummy data
+make cli
+```
+
+## Demo
+
+<img src="./intro.gif">
+
 
 ## Tests
+
+```shell
+make tests
+```
