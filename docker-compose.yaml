@@ -14,6 +14,8 @@ services:
       POSTGRES_PASSWORD: ${SRC_PGPASSWORD}
       POSTGRES_DB: ${SRC_PGDATABASE}
       POSTGRES_USER: ${SRC_PGUSER}
+    ports:
+        - "5554:5432"
     command:
       -c log_statement=all
 
@@ -26,6 +28,8 @@ services:
       POSTGRES_PASSWORD: ${DST_PGPASSWORD}
       POSTGRES_DB: ${DST_PGDATABASE}
       POSTGRES_USER: ${DST_PGUSER}
+    ports:
+        - "5555:5432"
     command:
       -c log_statement=all
 
@@ -42,4 +46,5 @@ services:
     volumes:
       - ./reims_publisher/reims_publisher:/app/reims_publisher
       - ./reims_publisher:/src
+      - ./.pg_service.conf:/app/.pg_service.conf
     command: sleep infinity
