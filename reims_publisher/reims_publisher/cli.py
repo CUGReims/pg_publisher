@@ -53,7 +53,9 @@ def main():
     object_ = BASIC_POSTGRES_OBJECTS.get(object_)
     if object_ == "schemas":
         process = schema_choice(conn_src, conn_dst, logger)
+        # Pre Process (dependencies, ect)
         if not process["success"]:
+            logger.insert_log_row()
             questionary.print(
                 "Script de publication terminé sans avoir apporté de changement"
             )
@@ -68,7 +70,12 @@ def main():
         )
     elif object_ == "tables":
         process = table_choice(conn_src, conn_dst, logger)
+        # Pre Process (dependencies, ect)
         if not process["success"]:
+            logger.insert_log_row()
+            questionary.print(
+                "Script de publication terminé sans avoir apporté de changement"
+            )
             return
         logger = process["logger"]
         publish(
@@ -90,8 +97,10 @@ def table_choice(conn_src, conn_dst, logger):
     ).ask()
     # verification
     if not SchemaQuerier.schema_exists(conn_dst, schema):
-        error_message = "Le schéma {schema} ne se trouve pas sur le serveur de destination".format(
-            schema=schema
+        error_message = (
+            "Le schéma {schema} ne se trouve pas sur le serveur de destination".format(
+                schema=schema
+            )
         )
         questionary.print(
             "{error_message}, merci de le créer et de relancer".format(
@@ -100,7 +109,6 @@ def table_choice(conn_src, conn_dst, logger):
         )
         logger.success = False
         logger.fail_reason = error_message
-        logger.insert_log_row()
         return {"success": False, "logger": logger}
 
     tables = questionary.checkbox(
@@ -146,15 +154,19 @@ def schema_choice(conn_src, conn_dst, logger) -> dict:
 def table_dependencies_manager(dependencies, logger):
     warning_text = "[INFO]: "
     for dep in dependencies["views"]:
-        warning_text += "La vue {} du schéma {} depend de la table {} du schéma {} \n".format(
-            dep["dependent_view"],
-            dep["dependent_schema"],
-            dep["source_schema"],
-            dep["source_table"],
+        warning_text += (
+            "La vue {} du schéma {} depend de la table {} du schéma {} \n".format(
+                dep["dependent_view"],
+                dep["dependent_schema"],
+                dep["source_schema"],
+                dep["source_table"],
+            )
         )
     for dep in dependencies["tables"]:
-        warning_text += "La table {} depend de la table {} avec la contrainte {}".format(
-            dep["dependent_table"], dep["schema_table"], dep["type_of_constraint"]
+        warning_text += (
+            "La table {} depend de la table {} avec la contrainte {}".format(
+                dep["dependent_table"], dep["schema_table"], dep["type_of_constraint"]
+            )
         )
     questionary.print("Des dépendances ont été trouvé \n {}".format(warning_text))
     force = questionary.confirm("Voulez vous forcer la suppresion?").ask()
@@ -187,6 +199,7 @@ def schema_dependencies_manager(dependencies, conn_dst, logger):
         questionary.print(warning_text)
     if error_message:
         questionary.print(error_message)
+        logger.fail_reason = error_message
         return {"success": False, "logger": logger}
         # list all dependencies
     return {"success": True, "logger": logger}
