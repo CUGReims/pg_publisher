@@ -40,7 +40,9 @@ def main():
     dst_conn_string = get_conn_from_service_name(service_db_dst)["conn_str"]
 
     logger = PublisherLogger(conn_src)
-
+    logger.src_db = service_db_src
+    logger.src_db = service_db_dst
+    # What object
     object = questionary.select(
         "Que voulez-vous publier ?", choices=list(BASIC_POSTGRES_OBJECTS.keys())
     ).ask()

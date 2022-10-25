@@ -5,6 +5,7 @@ from datetime import datetime
 
 class PublisherLogger:
     def __init__(self, conn):
+        self._path_to_log_file = None
         self._src_db = None
         self._dst_db = None
         self._success = False
@@ -80,11 +81,11 @@ class PublisherLogger:
 
     @property
     def fail_reason(self):
-        return self._object_type
+        return self._fail_reason
 
     @fail_reason.setter
     def fail_reason(self, fail_reason):
-        self.fail_reason = fail_reason
+        self._fail_reason = fail_reason
 
     @property
     def success(self):
@@ -116,6 +117,6 @@ class PublisherLogger:
             path_to_log_file=self._path_to_log_file,
             fail_reason=self._fail_reason,
         )
-        cursor = self.conn.cursor()
-        cursor.execute(sql)
-        self.conn.commit()
+        with self.conn:
+            with self.conn.cursor() as cursor:
+                cursor.execute(sql)

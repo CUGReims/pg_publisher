@@ -38,5 +38,8 @@ clean: ## Stop composition, remove containers and images
 	docker-compose down -v -t1 --remove-orphans
 	docker rmi camptocamp/reims_publisher:latest || true
 
-cli: ## Stop composition, remove containers and images
+cli: ## Starts the cli
 	docker-compose exec --user `id -u`:`id -g` tester python /app/reims_publisher/cli.py
+
+generate_dummy_src_data: ## Create a schema and tables, views
+	docker-compose exec --user `id -u`:`id -g` src_db psql -U reims reims -c 'CREATE schema foo; CREATE schema bar; CREATE table foo.bar (id int); CREATE table bar.foo(id int); CREATE VIEW foo.viewbar as select * from bar.foo;'
