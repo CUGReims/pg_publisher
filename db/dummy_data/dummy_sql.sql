@@ -1,8 +1,9 @@
-DROP SCHEMA foo CASCADE;
-DROP SCHEMA bar CASCADE;
-CREATE SCHEMA foo;
-CREATE SCHEMA bar;
-CREATE TABLE foo.bar (id int UNIQUE, name varchar);
-CREATE TABLE bar.foo (id int UNIQUE, name varchar);
-CREATE TABLE bar.dep_bar (id int UNIQUE, id_foo_bar int references foo.bar(id));
-CREATE VIEW foo.viewbar as select * from bar.foo;
+DROP SCHEMA schema_foo CASCADE;
+DROP SCHEMA schema_bar CASCADE;
+CREATE SCHEMA schema_foo;
+CREATE SCHEMA schema_bar;
+
+CREATE TABLE schema_foo.bar (id int UNIQUE, name varchar);
+CREATE TABLE schema_bar.foo (id int UNIQUE, name varchar);
+CREATE TABLE schema_bar.dep_bar (id int UNIQUE, id_foo_bar int references schema_foo.bar(id));
+CREATE VIEW schema_bar.viewbar as select * from schema_foo.bar;

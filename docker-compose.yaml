@@ -9,6 +9,7 @@ services:
     image: camptocamp/postgres:12
     volumes:
       - ./db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./db/dummy_data:/tmp/
       - src_postgresql_data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: ${SRC_PGPASSWORD}

@@ -35,3 +35,7 @@ def test_schema_querier_get_materialized_views_from_schema(
         src_conn, "schema1"
     )
     assert len(existing_views) == 1
+
+
+
+

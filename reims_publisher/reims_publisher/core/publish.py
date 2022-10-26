@@ -10,7 +10,7 @@ def publish(
     tables: Optional[List[str]] = None,
     views: Optional[List[str]] = None,
     materialized_views: Optional[List[str]] = None,
-    force: Optional[bool] = False,
+    force: Optional[bool] = True,
 ):
     with open(log_file_path, "a") as f:
         receiver = subprocess.Popen(
