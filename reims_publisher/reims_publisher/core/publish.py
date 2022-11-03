@@ -5,80 +5,83 @@ from typing import List, Optional
 def publish(
     src_conn_string: str,
     dst_conn_string: str,
+    log_file_path: str,
     schemas: Optional[List[str]] = None,
     tables: Optional[List[str]] = None,
     views: Optional[List[str]] = None,
     materialized_views: Optional[List[str]] = None,
-    force: Optional[bool] = False,
+    force: Optional[bool] = True,
 ):
-
-    receiver = subprocess.Popen(["psql", dst_conn_string], stdin=subprocess.PIPE)
-
-    if schemas:
-        for schema in schemas:
-            sql_query = (
-                "DROP SCHEMA IF EXISTS {} CASCADE;".format(schema).encode("utf8")
-                if force
-                else "DROP SCHEMA IF EXISTS {};".format(schema).encode("utf8")
-            )
-            receiver.stdin.write(sql_query)
-        subprocess.Popen(
-            ["pg_dump"]
-            + [arg for schema in schemas for arg in ["-n", schema]]
-            + [src_conn_string],
-            stdout=receiver.stdin,
-            stderr=subprocess.PIPE,
+    with open(log_file_path, "a") as f:
+        receiver = subprocess.Popen(
+            ["psql", dst_conn_string], stdout=f, stdin=subprocess.PIPE
         )
 
-    if tables:
-        for table in tables:
-            sql_query = (
-                "DROP TABLE IF EXISTS {} CASCADE;".format(table).encode("utf8")
-                if force
-                else "DROP TABLE IF EXISTS {};".format(table).encode("utf8")
-            )
-            receiver.stdin.write(sql_query)
-        subprocess.Popen(
-            ["pg_dump"]
-            + [arg for table in tables for arg in ["-t", table]]
-            + [src_conn_string],
-            stdout=receiver.stdin,
-            stderr=subprocess.PIPE,
-        )
-
-    if views:
-        for view in views or []:
-            sql_query = (
-                "DROP VIEW IF EXISTS {} CASCADE;".format(view).encode("utf8")
-                if force
-                else "DROP VIEW IF EXISTS {};".format(view).encode("utf8")
-            )
-            receiver.stdin.write(sql_query)
-        subprocess.Popen(
-            ["pg_dump"]
-            + [arg for view in views for arg in ["-t", view]]
-            + [src_conn_string],
-            stdout=receiver.stdin,
-            stderr=subprocess.PIPE,
-        )
-
-    if materialized_views:
-        for mat_view in materialized_views or []:
-            sql_query = (
-                "DROP MATERIALIZED VIEW IF EXISTS {} CASCADE;".format(mat_view).encode(
-                    "utf8"
+        if schemas:
+            for schema in schemas:
+                sql_query = (
+                    "DROP SCHEMA IF EXISTS {} CASCADE;".format(schema).encode("utf8")
+                    if force
+                    else "DROP SCHEMA IF EXISTS {};".format(schema).encode("utf8")
                 )
-                if force
-                else "DROP MATERIALIZED VIEW IF EXISTS {};".format(mat_view).encode(
-                    "utf8"
-                )
+                receiver.stdin.write(sql_query)
+            subprocess.Popen(
+                ["pg_dump"]
+                + [arg for schema in schemas for arg in ["-n", schema]]
+                + [src_conn_string],
+                stdout=receiver.stdin,
+                stderr=subprocess.PIPE,
             )
-            receiver.stdin.write(sql_query)
-        subprocess.Popen(
-            ["pg_dump"]
-            + [arg for mat_view in materialized_views for arg in ["-t", mat_view]]
-            + [src_conn_string],
-            stdout=receiver.stdin,
-            stderr=subprocess.PIPE,
-        )
-    receiver.communicate()
+
+        if tables:
+            for table in tables:
+                sql_query = (
+                    "DROP TABLE IF EXISTS {} CASCADE;".format(table).encode("utf8")
+                    if force
+                    else "DROP TABLE IF EXISTS {};".format(table).encode("utf8")
+                )
+                receiver.stdin.write(sql_query)
+            subprocess.Popen(
+                ["pg_dump"]
+                + [arg for table in tables for arg in ["-t", table]]
+                + [src_conn_string],
+                stdout=receiver.stdin,
+                stderr=subprocess.PIPE,
+            )
+
+        if views:
+            for view in views or []:
+                sql_query = (
+                    "DROP VIEW IF EXISTS {} CASCADE;".format(view).encode("utf8")
+                    if force
+                    else "DROP VIEW IF EXISTS {};".format(view).encode("utf8")
+                )
+                receiver.stdin.write(sql_query)
+            subprocess.Popen(
+                ["pg_dump"]
+                + [arg for view in views for arg in ["-t", view]]
+                + [src_conn_string],
+                stdout=receiver.stdin,
+                stderr=subprocess.PIPE,
+            )
+
+        if materialized_views:
+            for mat_view in materialized_views or []:
+                sql_query = (
+                    "DROP MATERIALIZED VIEW IF EXISTS {} CASCADE;".format(
+                        mat_view
+                    ).encode("utf8")
+                    if force
+                    else "DROP MATERIALIZED VIEW IF EXISTS {};".format(mat_view).encode(
+                        "utf8"
+                    )
+                )
+                receiver.stdin.write(sql_query)
+            subprocess.Popen(
+                ["pg_dump"]
+                + [arg for mat_view in materialized_views for arg in ["-t", mat_view]]
+                + [src_conn_string],
+                stdout=receiver.stdin,
+                stderr=subprocess.PIPE,
+            )
+        receiver.communicate()

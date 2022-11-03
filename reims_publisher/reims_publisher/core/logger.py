@@ -5,13 +5,13 @@ from datetime import datetime
 
 class PublisherLogger:
     def __init__(self, conn):
-        self._path_to_log_file = None
+        self.path_to_log_file = None
         self._src_db = None
         self._dst_db = None
         self._success = False
         self._object_names = None
         self._object_type = None
-        self._fail_reason = None
+        self._error_messages = None
         self.conn = conn
         self.user = os.environ.get("USER", os.environ.get("USERNAME"))
         self.create_log_file()
@@ -20,8 +20,8 @@ class PublisherLogger:
 
     def create_log_file(self):
         date_time = datetime.now().strftime("%Y-%m-%d")
-        self._path_to_log_file = "/tmp/log{date_time}.log".format(date_time=date_time)
-        logging.basicConfig(filename=self._path_to_log_file, level=logging.INFO)
+        self.path_to_log_file = "/tmp/log{date_time}.log".format(date_time=date_time)
+        logging.basicConfig(filename=self.path_to_log_file, level=logging.INFO)
 
     def create_logging_schema(self):
         with self.conn:
@@ -42,18 +42,11 @@ class PublisherLogger:
                         nom_objets varchar(1000),
                         succes boolean,
                         log_complet varchar(150), --chemin vers fichier de log
-                        raison_echec varchar(150)
+                        messager_erreur varchar(15000),
+                        commande varchar(1500)
                       );
                     """
                 )
-
-    @property
-    def src_db(self):
-        return self._object_type
-
-    @src_db.setter
-    def src_db(self, src_db):
-        self._src_db = src_db
 
     @property
     def src_db(self):
@@ -62,6 +55,14 @@ class PublisherLogger:
     @src_db.setter
     def src_db(self, src_db):
         self._src_db = src_db
+
+    @property
+    def dst_db(self):
+        return self._dst_db
+
+    @dst_db.setter
+    def dst_db(self, dst_db):
+        self._dst_db = dst_db
 
     @property
     def object_type(self):
@@ -73,19 +74,23 @@ class PublisherLogger:
 
     @property
     def object_names(self):
-        return self._object_type
+        return ", ".join(self._object_names) if self._object_names is not None else None
 
     @object_names.setter
     def object_names(self, object_names):
-        self._object_names = ",".join(object_names)
+        self._object_names = object_names
 
     @property
-    def fail_reason(self):
-        return self._fail_reason
+    def error_messages(self):
+        return (
+            ", ".join(self._error_messages)
+            if self._error_messages is not None
+            else None
+        )
 
-    @fail_reason.setter
-    def fail_reason(self, fail_reason):
-        self._fail_reason = fail_reason
+    @error_messages.setter
+    def error_messages(self, error_message):
+        self._error_messages = error_message
 
     @property
     def success(self):
@@ -95,9 +100,22 @@ class PublisherLogger:
     def success(self, success):
         self._success = success
 
+    def build_cmd_command(self):
+        """ "Schemas": "schemas",
+        "Tables": "tables",
+        "Vues": "vues",
+        "Vues Matérialisées": "materialized_views"
+        """
+        cmd_command = "--src_db {} --dst_db {} ".format(self.src_db, self.dst_db)
+        if self.object_type == "Schemas":
+            cmd_command += "--schemas {}".format(self.object_names)
+        elif self.object_type == "Tables":
+            cmd_command += "--tables {}".format(self.object_names)
+        return cmd_command
+
     def insert_log_row(self):
         sql = """INSERT INTO logging.logging (utilisateur, src_db_service_name, dst_db_service_name,
-         type_objet, nom_objets, succes, log_complet, raison_echec)
+         type_objet, nom_objets, succes, log_complet, messager_erreur, commande)
         VALUES (
         '{user}',
         '{src_db}',
@@ -106,16 +124,18 @@ class PublisherLogger:
         '{object_names}',
         '{success}',
         '{path_to_log_file}',
-        '{fail_reason}'
+        '{error_messages}',
+        '{command_pour_publish_cron}'
         )""".format(
             user=self.user,
-            src_db=self._src_db,
-            dst_db=self._dst_db,
-            object_type=self._object_type,
-            object_names=self._object_names,
-            success=self._success,
-            path_to_log_file=self._path_to_log_file,
-            fail_reason=self._fail_reason,
+            src_db=self.src_db,
+            dst_db=self.dst_db,
+            object_type=self.object_type,
+            object_names=self.object_names,
+            success=self.success,
+            path_to_log_file=self.path_to_log_file,
+            error_messages=self.error_messages,
+            command_pour_publish_cron=self.build_cmd_command(),
         )
         with self.conn:
             with self.conn.cursor() as cursor:
