@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 
@@ -13,6 +15,35 @@ def test_publish_schema_success(src_conn_string, dst_conn_string, src_table, dst
             row = cursor.fetchone()
             assert row == ("abc'def",)
             cursor.execute("DROP SCHEMA schema CASCADE;")
+
+
+@pytest.fixture
+def dst_schema_not_owned(dst_conn):
+    with dst_conn:
+        with dst_conn.cursor() as cursor:
+            cursor.execute("CREATE SCHEMA schema;")
+
+    yield
+
+    with dst_conn:
+        with dst_conn.cursor() as cursor:
+            cursor.execute("DROP SCHEMA schema;")
+
+
+@pytest.mark.usefixtures("src_table")
+def test_publish_schema_not_owned(
+    src_conn_string,
+    some_user,
+    src_table,
+    dst_schema_not_owned,
+    dst_conn,
+):
+    from reims_publisher.core.publish import publish, PsqlOperationalError
+
+    with pytest.raises(PsqlOperationalError) as excinfo:
+        publish(src_conn_string, some_user, "/tmp/nicelog.log", schemas=["schema"])
+
+    assert "must be owner of schema schema" in str(excinfo.value)
 
 
 @pytest.mark.usefixtures("dst_schema")

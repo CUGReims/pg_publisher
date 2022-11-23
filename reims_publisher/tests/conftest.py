@@ -68,3 +68,35 @@ def dst_transact(src_conn):
         yield dst_conn
     finally:
         dst_conn.rollback()
+
+
+@pytest.fixture
+def some_user(dst_conn):
+    """
+    Create a user and return corresponding connection string.
+    """
+    with dst_conn:
+        with dst_conn.cursor() as cursor:
+            cursor.execute(
+                f"""
+CREATE USER some_user WITH PASSWORD 'test';
+GRANT CONNECT ON DATABASE {os.environ["DST_PGDATABASE"]} TO some_user;
+                """
+            )
+
+    yield "host={DST_PGHOST} dbname={DST_PGDATABASE} user={DST_PGUSER} password={DST_PGPASSWORD}".format(
+        **{
+            **os.environ,
+            "DST_PGUSER": "some_user",
+            "DST_PGPASSWORD": "test",
+        }
+    )
+
+    with dst_conn:
+        with dst_conn.cursor() as cursor:
+            cursor.execute(
+                f"""
+REVOKE CONNECT ON DATABASE {os.environ["DST_PGDATABASE"]} FROM some_user;
+DROP USER some_user;
+                """
+            )

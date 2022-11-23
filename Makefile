@@ -28,6 +28,9 @@ black: ## Run black formatter
 up: ## Start the composition
 	docker-compose up -d
 
+reinit: ## Drop databases and restart composition
+	docker-compose down -v -t1 && docker-compose up -d
+
 tests-debug: ## Run automated tests
 	docker-compose exec -T --user `id -u`:`id -g` tester pytest --trace -vv /src/tests
 
