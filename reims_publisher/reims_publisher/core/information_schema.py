@@ -70,19 +70,37 @@ class SchemaQuerier:
 
     @staticmethod
     def get_dependant_schemas_objects(database_connection: object, schemas) -> [dict]:
+        """
+        :param database_connection:
+        :param schemas:
+        :return: Dict of views and constraint dependencies
+        """
         with database_connection.cursor() as cursor:
             cursor.execute(get_schemas_dependencies(schemas))
             dependencies_view = cursor.fetchall()
             cursor.execute(get_schemas_fk_dependencies(schemas))
             dependencies_fk = cursor.fetchall()
+        # transforms (key, value, key1, value1) to {key: value, key1, value1}
+        # for both views & constraints
         return {
             "views": [
                 dict(zip(dependency[::2], dependency[1::2]))
                 for dependency in dependencies_view
+                # dependency is a dict of {
+                # dependant_schema: 'name_of_schema',
+                # dependent_view : 'view_name',
+                # source_schema: 'current_schema',
+                # source_table: current_table_name
+                # }
             ],
             "constraints": [
                 dict(zip(dependency[::2], dependency[1::2]))
                 for dependency in dependencies_fk
+                # {'source_schema': schemaname,
+                # 'dependent_schema_table': schema_table_name,
+                # 'source_schema_table': source_schema_table
+                # 'type_of_constraint': referencing_column::varchar,
+                # 'dependent_schema' : schema_name
             ],
         }
 
@@ -93,7 +111,6 @@ class SchemaQuerier:
             dependencies_views = cursor.fetchall()
             cursor.execute(get_tables_fk_dependencies(tables))
             dependencies_fk = cursor.fetchall()
-
         return {
             "views": [
                 dict(zip(dependency[::2], dependency[1::2]))
@@ -120,6 +137,7 @@ class SchemaQuerier:
             )
             return cursor.fetchone()[0]
 
+    # TODO move to more logical place
     @staticmethod
     def can_publish_to_dst_server(
         database_connection: object,
@@ -128,13 +146,12 @@ class SchemaQuerier:
         tables: Optional[List[str]] = None,
     ) -> {dict}:
         """
-        Checks for each src dependencies, that dst database has the correct dependencies.
-        Will check that dependent Schemas, Tables and FK exists.
+        Checks that all dependencies of current objects exist in dst database.
         :param schemas: list of schemas specified by the user
         :param tables: list of tables either in schemas or specified by the user
         :param database_connection: the connection to the dst database
         :param src_dependencies: list of dependencies from schemas or tables
-        :return: {can_publish : Bool : schema_errors: [], schema_errors: []}
+        :return: {can_publish : Bool : schema_errors: [], table_view_errors: []}
         """
         schema_errors = []
         table_view_errors = []
@@ -156,7 +173,7 @@ class SchemaQuerier:
         # Keep only tables that aren't referenced in current publish task
         get_unique_source_tables = list(
             set(
-                val["schema_table"]
+                val["dependent_schema_table"]
                 for val in src_dependencies["constraints"] + src_dependencies["views"]
             )
         )
@@ -172,7 +189,7 @@ class SchemaQuerier:
         # Check each dependencies to make sure it can be published
         for dep in src_dependencies["constraints"]:
             schema_table_name = dep["source_schema_table"]
-            dependent_schema_table_name = dep["schema_table"]
+            dependent_schema_table_name = dep["dependent_schema_table"]
             if (
                 dependent_schema_table_name in tables_not_specified
                 and not SchemaQuerier.schema_table_exists(
@@ -185,11 +202,11 @@ class SchemaQuerier:
                     "La contrainte {} de la table {} fait référence à la table {} qui existe pas".format(
                         dep["type_of_constraint"],
                         dep["source_schema_table"],
-                        dep["schema_table"],
+                        dep["dependent_schema_table"],
                     ),
                 )
         for dep in src_dependencies["views"]:
-            schema_table_name = dep["schema_table"]
+            schema_table_name = dep["dependent_schema_table"]
             dependent_schema_table_name = "{}.{}".format(
                 dep["dependent_schema"], dep["dependent_table"]
             )

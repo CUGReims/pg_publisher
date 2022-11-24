@@ -4,17 +4,23 @@ import click
 import questionary
 from reims_publisher.core.database_manager import (
     get_services,
-    get_conn_from_service_name,
+    get_conn_string_from_service_name,
 )
 from reims_publisher.core.information_schema import SchemaQuerier
 from reims_publisher.core.publish import publish
 from reims_publisher.core.logger import PublisherLogger
+from psycopg2 import connect
+
+SCHEMAS = "schemas"
+TABLES = "tables"
+VIEWS = "views"
+MAT_VIEW = "materialized_views"
 
 BASIC_POSTGRES_OBJECTS = {
-    "Schemas": "schemas",
-    "Tables": "tables",
-    "Vues": "vues",
-    "Vues Matérialisées": "materialized_views",
+    "Schemas": SCHEMAS,
+    "Tables": TABLES,
+    "Vues": VIEWS,
+    "Vues Matérialisées": MAT_VIEW,
 }
 
 
@@ -26,8 +32,8 @@ def main():
     ).ask()
 
     # src_conn
-    conn_src = get_conn_from_service_name(service_db_src)["conn"]
-    src_conn_string = get_conn_from_service_name(service_db_src)["conn_str"]
+    src_conn_string = get_conn_string_from_service_name(service_db_src)
+    src_conn = connect(src_conn_string)
 
     service_db_dst = questionary.select(
         "Selection de la base de données de destination",
@@ -35,23 +41,23 @@ def main():
     ).ask()
 
     # dst_conn
-    conn_dst = get_conn_from_service_name(service_db_dst)["conn"]
-    dst_conn_string = get_conn_from_service_name(service_db_dst)["conn_str"]
+    dst_conn_string = get_conn_string_from_service_name(service_db_dst)
+    dst_conn = connect(dst_conn_string)
 
     # init logger
-    logger = PublisherLogger(conn_src)
+    logger = PublisherLogger(dst_conn)
     logger.src_db = service_db_src
     logger.dst_db = service_db_dst
 
     # What object
-    object_ = questionary.select(
+    object_type = questionary.select(
         "Que voulez-vous publier ?", choices=list(BASIC_POSTGRES_OBJECTS.keys())
     ).ask()
-    logger.object_type = object_
-    object_ = BASIC_POSTGRES_OBJECTS.get(object_)  # pretty
+    logger.object_type = object_type
+    object_type = BASIC_POSTGRES_OBJECTS.get(object_type)  # pretty
 
-    if object_ == "schemas":
-        process = main_schema_process(conn_src, conn_dst, logger)
+    if object_type == SCHEMAS:
+        process = main_schema_process(src_conn, dst_conn, logger)
         logger = process["logger"]
         # Pre Process (dependencies, ect)
         if logger.error_messages:
@@ -59,20 +65,19 @@ def main():
                 "{} Erreurs rencontrées".format(len(logger.error_messages)),
                 style="bold italic fg:red",
             )
-            [questionary.print(error) for error in logger.error_messages]
+            questionary.print(logger.error_messages)
         force = True
         if not process["success"]:
             force = questionary.confirm(
                 "Souhaitez-vous ignorer les erreurs et essayer de publier ?"
             ).ask()
         if not force:
-            logger.insert_log_row()
             questionary.print(no_change_message())
             return
         logger = process["logger"]
         # Now publish
         confirm = questionary.confirm(
-            "{} schéma(s), {} tables et {} vues seront publiés".format(
+            "{} schéma(s), {} table(s) et {} vue(s) seront publiés".format(
                 len(process["schemas"]), len(process["tables"]), len(process["views"])
             )
         ).ask()
@@ -85,15 +90,13 @@ def main():
                 force=force,
             )
         else:
-            logger.error_messages("Annulé par l'utilisateur")
-            logger.insert_log_row()
             questionary.print("Script de publication annulé")
 
-    elif object_ == "tables":
-        process = main_table_process(conn_src, conn_dst, logger)
+    elif object_type == TABLES:
+        process = main_table_process(src_conn, dst_conn, logger)
         # Pre Process (dependencies, ect)
         logger = process["logger"]  # reattach logger
-        if logger.errorerror_messages:
+        if logger.error_messages:
             questionary.print(logger.error_message)
         force = False
         if not process["success"] and process["tables"] is not None:
@@ -101,7 +104,6 @@ def main():
                 "Souhaitez-vous ignorer les warnings et essayer de publier ?"
             ).ask()
             if not force:
-                logger.insert_log_row()
                 questionary.print(no_change_message())
                 return
         publish(
@@ -111,6 +113,10 @@ def main():
             tables=process["tables"],
             force=force,
         )
+
+    src_conn.close()
+    dst_conn.close()
+
     logger.success = True
     questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
     logger.insert_log_row()
@@ -119,6 +125,7 @@ def main():
 
 def main_table_process(conn_src, conn_dst, logger):
     "Ask specific table questions"
+
     schema = questionary.select(
         "Selection du schéma", choices=SchemaQuerier.get_schemas(conn_src)
     ).ask()
@@ -160,8 +167,8 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
         validate=choice_checker,
     ).ask()
     logger.object_names = schemas
-    # get src dependencies
-    src_dependencies = SchemaQuerier.get_dependant_schemas_objects(conn_src, schemas)
+    # get src dependant
+    src_dependant = SchemaQuerier.get_dependant_schemas_objects(conn_src, schemas)
     questionary.print("Vérifications des dépendances...")
     tables_to_be_published = list(
         set(
@@ -187,7 +194,7 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
             ]
         )
     )
-    if src_dependencies["views"] is None and src_dependencies["constraints"] is None:
+    if src_dependant["views"] is None and src_dependant["constraints"] is None:
         questionary.print("Aucune dépendances")
         schemas_dependencies = {
             "can_publish": True
@@ -195,7 +202,7 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
     else:
         schemas_dependencies = SchemaQuerier.can_publish_to_dst_server(
             conn_dst,
-            src_dependencies,
+            src_dependant,
             schemas=logger.object_names,
             tables=tables_to_be_published,
         )

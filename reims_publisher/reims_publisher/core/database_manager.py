@@ -1,5 +1,4 @@
 from pgtoolkit.service import find, parse
-from psycopg2 import connect
 
 
 def get_service_file():
@@ -21,7 +20,7 @@ def get_services():
     return services
 
 
-def get_conn_from_service_name(service_name):
+def get_conn_string_from_service_name(service_name):
     service_file = get_service_file()
     with open(service_file) as f:
         service_file = parse(f)
@@ -34,7 +33,5 @@ def get_conn_from_service_name(service_name):
         connection_string = "host={host} dbname={dbname} user={user} password={password} port={port}".format(
             host=host, dbname=dbname, user=user, password=password, port=port
         )
-        connection = connect(
-            host=host, dbname=dbname, user=user, password=password, port=port
-        )
-    return {"conn": connection, "conn_str": connection_string}
+
+    return connection_string

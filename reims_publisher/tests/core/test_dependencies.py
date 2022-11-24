@@ -8,7 +8,25 @@ def test_schema_querier_get_schema_dependencies(views, dst_conn):
     dependencies = SchemaQuerier.get_dependant_schemas_objects(
         dst_conn, ["schema2", "schema1"]
     )
-    assert len(dependencies) == 2
+    views = dependencies["views"]
+    constraints = dependencies["constraints"]
+    assert len(constraints) == 0
+    assert views == [
+        {
+            "dependent_schema": "schema1",
+            "view": "view1",
+            "source_schema": "schema2",
+            "dependent_table": "table1",
+            "dependent_schema_table": "schema1.table1",
+        },
+        {
+            "dependent_schema": "schema2",
+            "view": "view2",
+            "source_schema": "schema1",
+            "dependent_table": "table1",
+            "dependent_schema_table": "schema2.table1",
+        },
+    ]
 
 
 @pytest.mark.usefixtures("views")
@@ -18,7 +36,7 @@ def test_schema_querier_get_table_constraint_dep(views, dst_constraint_table, ds
     dependencies = SchemaQuerier.get_dependant_tables_objects(
         dst_conn, ["schema1.table_with_fk1"]
     )
-    assert dependencies["constraints"][0]["schema_table"] == "schema2.table1"
+    assert dependencies["constraints"][0]["dependent_schema_table"] == "schema2.table1"
 
 
 @pytest.mark.usefixtures("views")
