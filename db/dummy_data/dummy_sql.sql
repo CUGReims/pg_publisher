@@ -1,5 +1,5 @@
-DROP SCHEMA schema_foo CASCADE;
-DROP SCHEMA schema_bar CASCADE;
+DROP SCHEMA IF EXISTS schema_foo CASCADE;
+DROP SCHEMA IF EXISTS schema_bar CASCADE;
 CREATE SCHEMA schema_foo;
 CREATE SCHEMA schema_bar;
 

@@ -9,7 +9,6 @@ services:
     image: camptocamp/postgres:12
     volumes:
       - ./db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-      - ./db/dummy_data:/tmp/
       - src_postgresql_data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: ${SRC_PGPASSWORD}
@@ -30,7 +29,7 @@ services:
       POSTGRES_DB: ${DST_PGDATABASE}
       POSTGRES_USER: ${DST_PGUSER}
     ports:
-        - "5555:5432"
+        - "5557:5432"
     command:
       -c log_statement=all
 

@@ -5,18 +5,18 @@ from datetime import datetime
 
 class PublisherLogger:
     def __init__(self, conn):
-        self.path_to_log_file = None
-        self._src_db = None
-        self._dst_db = None
+        self.path_to_log_file = None  # need
+        self._src_db = None  # need
+        self._dst_db = None  # need
         self._success = False
         self._object_names = None
         self._object_type = None
         self._error_messages = None
         self.conn = conn
-        self.user = os.environ.get("USER", os.environ.get("USERNAME"))
         self.create_log_file()
-        self.create_logging_schema()
-        self.create_logging_table()
+        self.user = os.environ.get("USER", os.environ.get("USERNAME"))  # need
+        self.create_logging_schema()  # need
+        self.create_logging_table()  # need
 
     def create_log_file(self):
         date_time = datetime.now().strftime("%Y-%m-%d")
@@ -101,7 +101,8 @@ class PublisherLogger:
         self._success = success
 
     def build_cmd_command(self):
-        """ "Schemas": "schemas",
+        """
+        "Schemas": "schemas",
         "Tables": "tables",
         "Vues": "vues",
         "Vues Matérialisées": "materialized_views"

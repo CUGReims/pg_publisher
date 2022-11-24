@@ -6,7 +6,7 @@ def test_schema_querier_get_schema(schemas, src_conn):
     from reims_publisher.core.information_schema import SchemaQuerier
 
     existing_schemas = SchemaQuerier.get_schemas(src_conn)
-    assert len(existing_schemas) == 3
+    assert existing_schemas == ["public", "pg_catalog", "information_schema"]
 
 
 @pytest.mark.usefixtures("tables")
@@ -35,7 +35,3 @@ def test_schema_querier_get_materialized_views_from_schema(
         src_conn, "schema1"
     )
     assert len(existing_views) == 1
-
-
-
-

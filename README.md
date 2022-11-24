@@ -1,14 +1,14 @@
 ## About The Project
 
 Using an interactive CLI, this publisher script will enable to
-copy Postgresql vues, tables, and schemas from one database to
+copy Postgresql views, tables, and schemas from one database to
 another.
 
 ## Getting Started
 
 ### Prerequisites
 
-Requires docker and docker compose
+Requires docker and docker-compose
 
 ### Installation
 
