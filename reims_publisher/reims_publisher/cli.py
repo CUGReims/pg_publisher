@@ -8,6 +8,7 @@ from reims_publisher.core.database_manager import (
 )
 from reims_publisher.core.information_schema import SchemaQuerier
 from reims_publisher.core.publish import publish
+from reims_publisher.core.depublish import depublish
 from reims_publisher.core.logger import PublisherLogger
 from psycopg2 import connect
 
@@ -17,15 +18,52 @@ VIEWS = "views"
 MAT_VIEW = "materialized_views"
 
 BASIC_POSTGRES_OBJECTS = {
-    "Schemas": SCHEMAS,
-    "Tables": TABLES,
-    "Vues": VIEWS,
-    "Vues Matérialisées": MAT_VIEW,
+    SCHEMAS: "Schemas",
+    TABLES: "Tables",
+    VIEWS: "Vues",
+    MAT_VIEW: "Vues Matérialisées",
 }
 
 
-@click.command()
-def main():
+def cli_depublish():
+
+    available_services = get_services()
+    service_db_dst = questionary.select(
+        "Selection de la base de données", choices=available_services
+    ).ask()
+
+    # dst_conn
+    dst_conn_string = get_conn_string_from_service_name(service_db_dst)
+    dst_conn = connect(dst_conn_string)
+
+    # What object
+    object_type = questionary.select(
+        "Que voulez-vous dépublier ?", choices=list(BASIC_POSTGRES_OBJECTS.keys())
+    ).ask()
+    # init logger
+    logger = PublisherLogger(dst_conn)
+    logger.src_db = service_db_dst
+    logger.dst_db = service_db_dst
+    if object_type == SCHEMAS:
+        process = main_schema_process(dst_conn, dst_conn, logger)
+        confirm = questionary.confirm(
+            "{} schéma(s), {} table(s) et {} vue(s) seront dépubliés".format(
+                len(process["schemas"]), len(process["tables"]), len(process["views"])
+            )
+        ).ask()
+        if confirm:
+            depublish(
+                dst_conn_string,
+                logger.path_to_log_file,
+                schemas=process["schemas"],
+                force=True,
+            )
+    questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+    logger.insert_log_row()
+    questionary.print("Script de dépublication terminé")
+
+
+def cli_publish():
     available_services = get_services()
     service_db_src = questionary.select(
         "Selection de la base de données source", choices=available_services
@@ -248,10 +286,15 @@ def no_change_message():
     return "Script de publication terminé sans avoir apporté de changement"
 
 
-def mystyle(a, b):
-    import pdb
-
-    pdb.set_trace()
+@click.command()
+def main():
+    publish_ = questionary.select(
+        "Que souhaitez vous faire ?", choices=["Publier", "Dépuplier"]
+    ).ask()
+    if publish_ == "Publier":
+        cli_publish()
+    else:
+        cli_depublish()
 
 
 if __name__ == "__main__":
