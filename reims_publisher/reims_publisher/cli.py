@@ -42,11 +42,22 @@ def cli_depublish():
     ).ask()
     # init logger
     logger = PublisherLogger(dst_conn)
-    logger.path_to_log_file = 'depublication'
+    logger.publish_or_depublish = "depublication"
     logger.src_db = service_db_dst
     logger.dst_db = service_db_dst
     if object_type == SCHEMAS:
         process = main_schema_process(dst_conn, dst_conn, logger)
+        if logger.error_count_messages != 0:
+            questionary.print(
+                "{} Erreurs rencontrées".format(logger.error_count_messages),
+                style="bold italic fg:red",
+            )
+            questionary.print(",".join(logger.error_messages))
+        force = False
+        if not process["success"] and process["tables"] is not None:
+            force = questionary.confirm(
+                "Souhaitez-vous ignorer les warnings et essayer de depublier ?"
+            ).ask()
         confirm = questionary.confirm(
             "{} schéma(s), {} table(s) et {} vue(s) seront dépubliés".format(
                 len(process["schemas"]), len(process["tables"]), len(process["views"])
@@ -57,11 +68,40 @@ def cli_depublish():
                 dst_conn_string,
                 logger.path_to_log_file,
                 schemas=process["schemas"],
+                force=force,
+            )
+            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            logger.insert_log_row()
+
+    if object_type == TABLES:
+        process = main_table_process(dst_conn, dst_conn, logger)
+        # Pre Process (dependencies, ect)
+        if logger.error_count_messages != 0:
+            questionary.print(
+                "{} Erreurs rencontrées".format(logger.error_count_messages),
+                style="bold italic fg:red",
+            )
+            questionary.print(",".join(logger.error_messages))
+
+        confirm = questionary.confirm(
+            "{} table(s) et {} vue(s) seront dépubliés".format(
+                len(process["tables"]), len(process["views"])
+            )
+        ).ask()
+        if confirm:
+            depublish(
+                dst_conn_string,
+                logger.path_to_log_file,
+                tables=process["tables"],
                 force=True,
             )
-    questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
-    logger.insert_log_row()
-    questionary.print("Script de dépublication terminé")
+
+            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            logger.insert_log_row()
+            questionary.print("Script de dépublication terminé")
+        else:
+            questionary.print("Script de dépublication annulé")
+    dst_conn.close()
 
 
 def cli_publish():
@@ -85,7 +125,7 @@ def cli_publish():
 
     # init logger
     logger = PublisherLogger(dst_conn)
-    logger.path_to_log_file = 'publication'
+    logger.publish_or_depublish = "publication"
     logger.src_db = service_db_src
     logger.dst_db = service_db_dst
 
@@ -98,12 +138,12 @@ def cli_publish():
         process = main_schema_process(src_conn, dst_conn, logger)
         logger = process["logger"]
         # Pre Process (dependencies, ect)
-        if logger.error_messages:
+        if len(logger.error_messages) >= 0:
             questionary.print(
                 "{} Erreurs rencontrées".format(logger.error_count_messages),
                 style="bold italic fg:red",
             )
-            questionary.print(logger.error_messages)
+        questionary.print(",".join(logger.error_messages))
         force = True
         if not process["success"]:
             force = questionary.confirm(
@@ -133,29 +173,43 @@ def cli_publish():
     elif object_type == TABLES:
         process = main_table_process(src_conn, dst_conn, logger)
         # Pre Process (dependencies, ect)
-        logger = process["logger"]  # reattach logger
-        if logger.error_messages:
-            questionary.print(logger.error_message)
-        force = False
+        if logger.error_count_messages != 0:
+            questionary.print(
+                "{} Erreurs rencontrées".format(logger.error_count_messages),
+                style="bold italic fg:red",
+            )
+            questionary.print(",".join(logger.error_messages))
+
+        force = True
+        # check for warnings
         if not process["success"] and process["tables"] is not None:
             force = questionary.confirm(
                 "Souhaitez-vous ignorer les warnings et essayer de publier ?"
             ).ask()
-            if not force:
-                questionary.print(no_change_message())
-                return
-        publish(
-            src_conn_string,
-            dst_conn_string,
-            logger.path_to_log_file,
-            tables=process["tables"],
-            force=force,
-        )
-
-    logger.success = True
-    questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
-    logger.insert_log_row()
-    questionary.print("Script de publication terminé")
+        if not force:
+            questionary.print(no_change_message())
+            return
+        logger = process["logger"]
+        # Now publish
+        confirm = questionary.confirm(
+            "{} table(s) et {} vue(s) seront publiés".format(
+                len(process["tables"]), len(process["views"])
+            )
+        ).ask()
+        if confirm:
+            publish(
+                src_conn_string,
+                dst_conn_string,
+                logger.path_to_log_file,
+                tables=process["tables"],
+                force=force,
+            )
+            logger.success = True
+            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            logger.insert_log_row()
+            questionary.print("Script de publication terminé")
+        else:
+            questionary.print("Script de publication annulé")
     src_conn.close()
     dst_conn.close()
 
@@ -169,13 +223,15 @@ def main_table_process(conn_src, conn_dst, logger):
 
     # Check if schemas exists, raise error if not
     if not SchemaQuerier.schema_exists(conn_dst, schema):
-        logger.error_messages = no_schema_message(schema)
+        logger.error_messages.append(no_schema_message(schema))
         return {"success": False, "tables": None, "logger": logger}
 
+    existing_tables = SchemaQuerier.get_tables_from_schema(conn_src, schema)
+    if not existing_tables:
+        logger.error_messages.append(no_table_in_schema(schema))
+        return {"success": False, "tables": None, "logger": logger}
     tables = questionary.checkbox(
-        "Selection du ou des tables",
-        choices=SchemaQuerier.get_tables_from_schema(conn_src, schema),
-        validate=choice_checker,
+        "Selection du ou des tables", choices=existing_tables, validate=choice_checker
     ).ask()
 
     src_dependencies = SchemaQuerier.get_dependant_tables_objects(conn_src, tables)
@@ -187,12 +243,21 @@ def main_table_process(conn_src, conn_dst, logger):
             conn_dst, src_dependencies, schemas=[schema], tables=tables
         )
     if not tables_dependencies["can_publish"]:
-        logger.error_messages = (
-            tables_dependencies["table_view_errors"]
-            + tables_dependencies["schema_errors"]
-        )
-        return {"success": False, "tables": tables, "logger": logger}
-    return {"success": True, "tables": tables, "logger": logger}
+        logger.error_messages.append(tables_dependencies["table_view_errors"])
+        logger.error_messages.append(tables_dependencies["schema_errors"])
+
+        return {
+            "success": False,
+            "tables": tables,
+            "views": src_dependencies["views"],
+            "logger": logger,
+        }
+    return {
+        "success": True,
+        "tables": tables,
+        "views": src_dependencies["views"],
+        "logger": logger,
+    }
 
 
 def main_schema_process(conn_src, conn_dst, logger) -> dict:
@@ -245,10 +310,9 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
         )
 
     if not schemas_dependencies["can_publish"]:
-        logger.error_messages = (
-            schemas_dependencies["table_view_errors"]
-            + schemas_dependencies["schema_errors"]
-        )
+        logger.error_messages.append(schemas_dependencies["table_view_errors"])
+        logger.error_messages.append(schemas_dependencies["schema_errors"])
+
         success = False
     return {
         "success": success,
@@ -270,6 +334,10 @@ def no_schema_message(schema_name):
             schema_name
         )
     )
+
+
+def no_table_in_schema(schema_name):
+    return "Aucune table se trouve dans le schema {}".format(schema_name)
 
 
 def no_table_message(table_name):

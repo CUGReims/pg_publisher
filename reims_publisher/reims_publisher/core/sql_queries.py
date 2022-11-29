@@ -91,7 +91,7 @@ def get_tables_view_dependencies(tables: [str]) -> [dict]:
       )
       SELECT DISTINCT 'dependent_schema', dependent_schema, 'view',
       dependent_view, 'source_schema', source_schema, 'dependent_table', dependent_table,
-      'schema_table', schema_table_name
+      'dependent_schema_table', schema_table_name
     FROM cte
     WHERE cte.dependent_schema <> cte.source_schema and cte.schema_table_name in ({});
     """.format(

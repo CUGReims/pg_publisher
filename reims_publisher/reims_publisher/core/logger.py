@@ -12,7 +12,7 @@ class PublisherLogger:
         self._success = False
         self._object_names = None
         self._object_type = None
-        self._error_messages = None
+        self._error_messages = []
         self.conn = conn
         self.create_log_file()
         self.user = os.environ.get("USER", os.environ.get("USERNAME"))  # need
@@ -45,7 +45,7 @@ class PublisherLogger:
                         log_complet varchar(150), --chemin vers fichier de log
                         messager_erreur varchar(15000),
                         commande varchar(1500),
-                        publier_depublier varchar(10)
+                        publier_depublier varchar(15)
                       );
                     """
                 )
@@ -88,15 +88,11 @@ class PublisherLogger:
 
     @property
     def error_messages(self):
-        return (
-            ", ".join(self._error_messages)
-            if self._error_messages is not None
-            else None
-        )
+        return self._error_messages
 
     @error_messages.setter
-    def error_messages(self, error_message):
-        self._error_messages = error_message
+    def error_messages(self, error_messages):
+        self._error_messages = error_messages
 
     @property
     def success(self):
@@ -113,7 +109,9 @@ class PublisherLogger:
         "Vues": "vues",
         "Vues Matérialisées": "materialized_views"
         """
-        cmd_command = "--type {} --src_db {} --dst_db {} ".format(self.publish_or_depublish, self.src_db, self.dst_db)
+        cmd_command = "--type {} --src_db {} --dst_db {} ".format(
+            self.publish_or_depublish, self.src_db, self.dst_db
+        )
         if self.object_type == "Schemas":
             cmd_command += "--schemas {}".format(self.object_names)
         elif self.object_type == "Tables":
@@ -142,7 +140,7 @@ class PublisherLogger:
             object_names=self.object_names,
             success=self.success,
             path_to_log_file=self.path_to_log_file,
-            error_messages=self.error_messages,
+            error_messages=",".join(self.error_messages),
             command_pour_publish_cron=self.build_cmd_command(),
             publish_or_depublish=self.publish_or_depublish,
         )
