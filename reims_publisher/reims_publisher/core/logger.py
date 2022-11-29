@@ -113,7 +113,7 @@ class PublisherLogger:
         "Vues": "vues",
         "Vues Matérialisées": "materialized_views"
         """
-        cmd_command = "--src_db {} --dst_db {} ".format(self.src_db, self.dst_db)
+        cmd_command = "--type {} --src_db {} --dst_db {} ".format(self.publish_or_depublish, self.src_db, self.dst_db)
         if self.object_type == "Schemas":
             cmd_command += "--schemas {}".format(self.object_names)
         elif self.object_type == "Tables":

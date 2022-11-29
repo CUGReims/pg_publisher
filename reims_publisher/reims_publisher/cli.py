@@ -42,6 +42,7 @@ def cli_depublish():
     ).ask()
     # init logger
     logger = PublisherLogger(dst_conn)
+    logger.path_to_log_file = 'depublication'
     logger.src_db = service_db_dst
     logger.dst_db = service_db_dst
     if object_type == SCHEMAS:
@@ -84,6 +85,7 @@ def cli_publish():
 
     # init logger
     logger = PublisherLogger(dst_conn)
+    logger.path_to_log_file = 'publication'
     logger.src_db = service_db_src
     logger.dst_db = service_db_dst
 
