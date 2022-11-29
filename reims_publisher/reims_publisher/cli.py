@@ -92,15 +92,13 @@ def cli_publish():
         "Que voulez-vous publier ?", choices=list(BASIC_POSTGRES_OBJECTS.keys())
     ).ask()
     logger.object_type = object_type
-    object_type = BASIC_POSTGRES_OBJECTS.get(object_type)  # pretty
-
     if object_type == SCHEMAS:
         process = main_schema_process(src_conn, dst_conn, logger)
         logger = process["logger"]
         # Pre Process (dependencies, ect)
         if logger.error_messages:
             questionary.print(
-                "{} Erreurs rencontrées".format(len(logger.error_messages)),
+                "{} Erreurs rencontrées".format(logger.error_count_messages),
                 style="bold italic fg:red",
             )
             questionary.print(logger.error_messages)
@@ -152,13 +150,12 @@ def cli_publish():
             force=force,
         )
 
-    src_conn.close()
-    dst_conn.close()
-
     logger.success = True
     questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
     logger.insert_log_row()
     questionary.print("Script de publication terminé")
+    src_conn.close()
+    dst_conn.close()
 
 
 def main_table_process(conn_src, conn_dst, logger):

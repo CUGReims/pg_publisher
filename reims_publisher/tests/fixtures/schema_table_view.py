@@ -28,7 +28,7 @@ def dst_schema(dst_conn):
     yield
     with dst_conn:
         with dst_conn.cursor() as cursor:
-            cursor.execute("DROP SCHEMA schema CASCADE;")
+            cursor.execute("DROP SCHEMA IF EXISTS schema CASCADE;")
 
 
 @pytest.fixture
