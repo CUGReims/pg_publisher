@@ -49,6 +49,23 @@ def src_table(src_conn, src_schema):
 
 
 @pytest.fixture
+def dst_table(dst_conn, dst_schema):
+    with dst_conn:
+        with dst_conn.cursor() as cursor:
+            cursor.execute(
+                "CREATE TABLE schema.table (id serial PRIMARY KEY, num integer, data varchar);"
+            )
+            cursor.execute(
+                "INSERT INTO schema.table (num, data) VALUES (%s, %s);",
+                (100, "abc'def"),
+            )
+    yield
+    with dst_conn:
+        with dst_conn.cursor() as cursor:
+            cursor.execute("DROP TABLE IF EXISTS schema.table CASCADE;")
+
+
+@pytest.fixture
 def schemas(src_conn, dst_conn):
     for conn in [src_conn, dst_conn]:
         with conn:
