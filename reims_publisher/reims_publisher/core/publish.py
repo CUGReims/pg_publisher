@@ -118,22 +118,30 @@ def publish(
 
         receiver.communicate()
 
+    error_message = ""
+    error_found = False
     with open(log_file_path, "r") as f:
         for line in f:
-            continue
-
+            if "ERROR:" in line:
+                error_found = True
+            if error_found:
+                error_message += line
+    if error_found:
+        error_message = str(
+            error_message[error_message.rindex("ERROR:") :]
+        )  # keep last ERROR only
     returncode = receiver.returncode
     if returncode == 0:
         return
     if returncode == 1:
         raise PsqlFatalError(
-            f"Erreur fatale: {line}\nVoir le fichier {log_file_path} pour plus de détails."
+            f"Erreur fatale: {error_message}\nVoir le fichier {log_file_path} pour plus de détails."
         )
     if returncode == 2:
         raise PsqlConnectionLostError(
-            f"Connection lost: {line}\nVoir le fichier {log_file_path} pour plus de détails."
+            f"Connection lost: {error_message}\nVoir le fichier {log_file_path} pour plus de détails."
         )
     if returncode == 3:
         raise PsqlOperationalError(
-            f"La restauration a échouée: {line}\nVoir le fichier {log_file_path} pour plus de détails."
+            f"La restauration a échouée: {error_message}\nVoir le fichier {log_file_path} pour plus de détails."
         )
