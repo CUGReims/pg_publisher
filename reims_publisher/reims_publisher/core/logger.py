@@ -8,10 +8,11 @@ class PublisherLogger:
         self.path_to_log_file = None  # need
         self._src_db = None  # need
         self._dst_db = None  # need
+        self.publish_or_depublish = None  # need
         self._success = False
         self._object_names = None
         self._object_type = None
-        self._error_messages = None
+        self._error_messages = []
         self.conn = conn
         self.create_log_file()
         self.user = os.environ.get("USER", os.environ.get("USERNAME"))  # need
@@ -43,7 +44,8 @@ class PublisherLogger:
                         succes boolean,
                         log_complet varchar(150), --chemin vers fichier de log
                         messager_erreur varchar(15000),
-                        commande varchar(1500)
+                        commande varchar(1500),
+                        publier_depublier varchar(15)
                       );
                     """
                 )
@@ -81,16 +83,16 @@ class PublisherLogger:
         self._object_names = object_names
 
     @property
+    def error_count_messages(self):
+        return len(self._error_messages) if self._error_messages is not None else None
+
+    @property
     def error_messages(self):
-        return (
-            ", ".join(self._error_messages)
-            if self._error_messages is not None
-            else None
-        )
+        return self._error_messages
 
     @error_messages.setter
-    def error_messages(self, error_message):
-        self._error_messages = error_message
+    def error_messages(self, error_messages):
+        self._error_messages = error_messages
 
     @property
     def success(self):
@@ -107,7 +109,9 @@ class PublisherLogger:
         "Vues": "vues",
         "Vues Matérialisées": "materialized_views"
         """
-        cmd_command = "--src_db {} --dst_db {} ".format(self.src_db, self.dst_db)
+        cmd_command = "--type {} --src_db {} --dst_db {} ".format(
+            self.publish_or_depublish, self.src_db, self.dst_db
+        )
         if self.object_type == "Schemas":
             cmd_command += "--schemas {}".format(self.object_names)
         elif self.object_type == "Tables":
@@ -116,7 +120,7 @@ class PublisherLogger:
 
     def insert_log_row(self):
         sql = """INSERT INTO logging.logging (utilisateur, src_db_service_name, dst_db_service_name,
-         type_objet, nom_objets, succes, log_complet, messager_erreur, commande)
+         type_objet, nom_objets, succes, log_complet, messager_erreur, commande, publier_depublier)
         VALUES (
         '{user}',
         '{src_db}',
@@ -126,7 +130,8 @@ class PublisherLogger:
         '{success}',
         '{path_to_log_file}',
         '{error_messages}',
-        '{command_pour_publish_cron}'
+        '{command_pour_publish_cron}',
+        '{publish_or_depublish}'
         )""".format(
             user=self.user,
             src_db=self.src_db,
@@ -135,8 +140,9 @@ class PublisherLogger:
             object_names=self.object_names,
             success=self.success,
             path_to_log_file=self.path_to_log_file,
-            error_messages=self.error_messages,
+            error_messages=",".join(self.error_messages),
             command_pour_publish_cron=self.build_cmd_command(),
+            publish_or_depublish=self.publish_or_depublish,
         )
         with self.conn:
             with self.conn.cursor() as cursor:
