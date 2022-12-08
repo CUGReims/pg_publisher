@@ -19,7 +19,7 @@ class SchemaQuerier:
             cursor.execute(
                 "SELECT DISTINCT(table_schema) from"
                 " information_schema.tables WHERE"
-                " table_schema not in ('pg_catalog, information_schema')"
+                " table_schema not in ('pg_catalog', 'information_schema')"
             )
             schemas = [r[0] for r in cursor.fetchall()]
             return schemas
@@ -48,11 +48,14 @@ class SchemaQuerier:
     def get_views_from_schema(database_connection: object, schema_name: str) -> [str]:
         with database_connection.cursor() as cursor:
             cursor.execute(
-                "SELECT table_name, view_definition FROM"
+                "SELECT DISTINCT (table_name) FROM"
                 " information_schema.views WHERE"
                 " table_schema = '{schema}';".format(schema=schema_name)
             )
-            views = cursor.fetchall()
+            views = [
+                "{schema}.{table}".format(schema=schema_name, table=view[0])
+                for view in cursor.fetchall()
+            ]
             return views
 
     @staticmethod
@@ -142,19 +145,23 @@ class SchemaQuerier:
     def can_publish_to_dst_server(
         database_connection: object,
         src_dependencies: [dict],
-        schemas: Optional[List[str]] = None,
-        tables: Optional[List[str]] = None,
+        schemas: Optional[List[str]] = [],
+        tables: Optional[List[str]] = [],
+        views: Optional[List[str]] = [],
+        materialized_views: Optional[List[str]] = None,
     ) -> {dict}:
         """
         Checks that all dependencies of current objects exist in dst database.
         :param schemas: list of schemas specified by the user
         :param tables: list of tables either in schemas or specified by the user
+        :param views: list of views either in schemas or specified by the user
         :param database_connection: the connection to the dst database
         :param src_dependencies: list of dependencies from schemas or tables
         :return: {can_publish : Bool : schema_errors: [], table_view_errors: []}
         """
         schema_errors = []
         table_view_errors = []
+        table_view_warnings = []
         # Keep only schemas that aren't referenced in current publish task
         get_unique_source_schemas = list(
             set(
@@ -177,7 +184,6 @@ class SchemaQuerier:
                 for val in src_dependencies["constraints"] + src_dependencies["views"]
             )
         )
-        # Add error if table not in current publish task nor in dst server
         tables_not_specified = [
             table for table in get_unique_source_tables if table not in tables
         ]
@@ -186,6 +192,20 @@ class SchemaQuerier:
             if not SchemaQuerier.schema_table_exists(database_connection, table):
                 schema_errors.insert(0, no_table_message(table))
 
+        get_unique_source_views = list(
+            set(
+                val["dependent_schema_table"]
+                for val in src_dependencies["constraints"] + src_dependencies["views"]
+            )
+        )
+        # Add error if table not in current publish task nor in dst server
+        views_not_specified = [
+            view for view in get_unique_source_views if view not in views
+        ]
+        for view in views_not_specified:
+            if not SchemaQuerier.schema_view_exists(database_connection, view):
+                schema_errors.insert(0, no_view_message(view))
+
         # Check each dependencies to make sure it can be published
         for dep in src_dependencies["constraints"]:
             schema_table_name = dep["source_schema_table"]
@@ -193,7 +213,7 @@ class SchemaQuerier:
             if (
                 dependent_schema_table_name in tables_not_specified
                 and not SchemaQuerier.schema_table_exists(
-                    database_connection, schema_table_name
+                    database_connection, dependent_schema_table_name
                 )
             ):
                 # check that table exists in dest
@@ -201,8 +221,8 @@ class SchemaQuerier:
                     0,
                     "La contrainte {} de la table {} fait référence à la table {} qui existe pas".format(
                         dep["type_of_constraint"],
-                        dep["source_schema_table"],
-                        dep["dependent_schema_table"],
+                        schema_table_name,
+                        dependent_schema_table_name,
                     ),
                 )
         for dep in src_dependencies["views"]:
@@ -210,6 +230,7 @@ class SchemaQuerier:
             dependent_schema_table_name = "{}.{}".format(
                 dep["dependent_schema"], dep["dependent_table"]
             )
+            # When publishing check that all dep exists
             if (
                 dependent_schema_table_name in tables_not_specified
                 and not SchemaQuerier.schema_table_exists(
@@ -225,12 +246,24 @@ class SchemaQuerier:
                         dep["dependent_schema"],
                     ),
                 )
+            # when republishing, add warning to user that dependencies will be lost
+            else:
+                table_view_warnings.insert(
+                    0,
+                    "La vue {} du schéma {} dependant de la table {} du schéma {} sera supprimé. ".format(
+                        dep["view"],
+                        dep["source_schema"],
+                        dep["dependent_table"],
+                        dep["dependent_schema"],
+                    ),
+                )
         return {
             "can_publish": True
             if len(schema_errors) == 0 and len(table_view_errors) == 0
             else False,
-            "schema_errors": schema_errors,
-            "table_view_errors": table_view_errors,
+            "schema_errors": list(set(schema_errors)),
+            "table_view_errors": list(set(table_view_errors)),
+            "table_view_warnings": list(set(table_view_warnings)),
         }
 
     @staticmethod
@@ -246,6 +279,24 @@ class SchemaQuerier:
         with database_connection.cursor() as cursor:
             cursor.execute(
                 "SELECT EXISTS(SELECT 1 FROM pg_tables WHERE schemaname = '{}' AND tablename = '{}');".format(
+                    schema_table_name[0], schema_table_name[1]
+                )
+            )
+            return cursor.fetchone()[0]
+
+    @staticmethod
+    def schema_view_exists(
+        database_connection: object, schema_table_name: str
+    ) -> [bool]:
+        """
+        :param view_name schema.view
+        :param database_connection:
+        :return: bool
+        """
+        schema_table_name = schema_table_name.split(".")
+        with database_connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT EXISTS(SELECT 1 FROM pg_views WHERE schemaname = '{}' AND viewname = '{}');".format(
                     schema_table_name[0], schema_table_name[1]
                 )
             )
@@ -267,4 +318,11 @@ def no_table_message(table_name):
         "sur le serveur de destination, merci de le créer/publier \n ".format(
             table_name
         )
+    )
+
+
+def no_view_message(view_name):
+    return (
+        "La vue {} ne se trouve pas "
+        "sur le serveur de destination, merci de le créer/publier \n ".format(view_name)
     )

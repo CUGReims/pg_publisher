@@ -6,7 +6,7 @@ def test_schema_querier_get_schema(schemas, src_conn):
     from reims_publisher.core.information_schema import SchemaQuerier
 
     existing_schemas = SchemaQuerier.get_schemas(src_conn)
-    assert existing_schemas == ["public", "pg_catalog", "information_schema"]
+    assert existing_schemas == ["public"]
 
 
 @pytest.mark.usefixtures("tables")
