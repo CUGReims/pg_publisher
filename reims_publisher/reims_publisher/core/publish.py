@@ -128,7 +128,7 @@ def publish(
                 error_message += line
     if error_found:
         error_message = str(
-            error_message[error_message.rindex("ERROR:") :]
+            error_message[error_message.rindex("ERROR:") :]  # noqa
         )  # keep last ERROR only
     returncode = receiver.returncode
     if returncode == 0:
@@ -143,5 +143,6 @@ def publish(
         )
     if returncode == 3:
         raise PsqlOperationalError(
-            f"La restauration a échouée: {error_message}\nVoir le fichier {log_file_path} pour plus de détails."
+            f"La restauration a échouée: {error_message}\n"
+            f"Voir le fichier {log_file_path} pour plus de détails."
         )

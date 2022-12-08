@@ -19,7 +19,7 @@ class SchemaQuerier:
             cursor.execute(
                 "SELECT DISTINCT(table_schema) from"
                 " information_schema.tables WHERE"
-                " table_schema not in ('pg_catalog, information_schema')"
+                " table_schema not in ('pg_catalog', 'information_schema')"
             )
             schemas = [r[0] for r in cursor.fetchall()]
             return schemas
@@ -57,7 +57,6 @@ class SchemaQuerier:
                 for view in cursor.fetchall()
             ]
             return views
-
 
     @staticmethod
     def get_materialized_views_from_schema(
@@ -126,7 +125,6 @@ class SchemaQuerier:
             ],
         }
 
-
     @staticmethod
     def schema_exists(database_connection: object, schema_name: str) -> [bool]:
         """
@@ -186,8 +184,6 @@ class SchemaQuerier:
                 for val in src_dependencies["constraints"] + src_dependencies["views"]
             )
         )
-        # Add error if table not in current publish task nor in dst server
-        views_not_specified = [ ] #FIX ME
         tables_not_specified = [
             table for table in get_unique_source_tables if table not in tables
         ]
@@ -196,8 +192,17 @@ class SchemaQuerier:
             if not SchemaQuerier.schema_table_exists(database_connection, table):
                 schema_errors.insert(0, no_table_message(table))
 
+        get_unique_source_views = list(
+            set(
+                val["dependent_schema_table"]
+                for val in src_dependencies["constraints"] + src_dependencies["views"]
+            )
+        )
+        # Add error if table not in current publish task nor in dst server
+        views_not_specified = [
+            view for view in get_unique_source_views if view not in views
+        ]
         for view in views_not_specified:
-
             if not SchemaQuerier.schema_view_exists(database_connection, view):
                 schema_errors.insert(0, no_view_message(view))
 
@@ -319,7 +324,5 @@ def no_table_message(table_name):
 def no_view_message(view_name):
     return (
         "La vue {} ne se trouve pas "
-        "sur le serveur de destination, merci de le créer/publier \n ".format(
-            view_name
-        )
+        "sur le serveur de destination, merci de le créer/publier \n ".format(view_name)
     )

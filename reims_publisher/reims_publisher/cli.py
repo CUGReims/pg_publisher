@@ -221,8 +221,7 @@ def cli_publish():
             logger.success = True
             questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
-            questionary.print("Script de dépublication terminé")
-
+            questionary.print("Script de publication terminé")
         else:
             questionary.print("Script de publication annulé")
 
@@ -238,7 +237,7 @@ def cli_publish():
 
         force = True
         # check for warnings
-        if process["views_dep"] != []:
+        if process["views_dep"]:
             questionary.print(
                 ",\n".join(process["views_dep"]), style="bold italic fg:yellow"
             )
@@ -280,7 +279,7 @@ def cli_publish():
 
         force = True
         # check for warnings
-        if process["views_dep"] is not None:
+        if process["views_dep"]:
             questionary.print(
                 ",\n".join(process["views_dep"]), style="bold italic fg:yellow"
             )
@@ -358,6 +357,7 @@ def main_table_process(conn_src, conn_dst, logger):
         "views_dep": tables_dependencies["table_view_warnings"],
         "logger": logger,
     }
+
 
 def main_view_process(conn_src, conn_dst, logger):
     "Ask specific view questions"
