@@ -90,8 +90,10 @@ def cli_depublish():
                 style="bold italic fg:red",
             )
             questionary.print(",".join(logger.error_messages))
+        if not process["tables"]:
+            questionary.print(no_change_message())
         # check for warnings
-        if process["views_dep"] != []:
+        if process["views_dep"]:
             questionary.print(
                 ",\n".join(process["views_dep"]), style="bold italic fg:yellow"
             )
@@ -126,8 +128,11 @@ def cli_depublish():
                 style="bold italic fg:red",
             )
             questionary.print(",".join(logger.error_messages))
+        if not process["views"]:
+            questionary.print(no_change_message())
+            return
         # check for warnings
-        if process["views_dep"] != []:
+        if process["views_dep"]:
             questionary.print(
                 ",\n".join(process["views_dep"]), style="bold italic fg:yellow"
             )
@@ -144,6 +149,47 @@ def cli_depublish():
                 dst_conn_string,
                 logger.path_to_log_file,
                 views=process["views"],
+                force=force,
+            )
+
+            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            logger.insert_log_row()
+            questionary.print("Script de dépublication terminé")
+        else:
+            questionary.print("Script de dépublication annulé")
+    if object_type == MAT_VIEW:
+        force = True
+        process = main_mat_view_process(dst_conn, dst_conn, logger)
+
+        # Pre Process (dependencies, ect)
+        if logger.error_count_messages != 0:
+            questionary.print(
+                "{} Erreurs rencontrées".format(logger.error_count_messages),
+                style="bold italic fg:red",
+            )
+            questionary.print(",".join(logger.error_messages))
+        if not process["mat_views"]:
+            questionary.print(no_change_message())
+            return
+        # check for warnings
+        if process["views_dep"]:
+            questionary.print(
+                ",\n".join(process["views_dep"]), style="bold italic fg:yellow"
+            )
+            force = questionary.confirm(
+                "Souhaitez-vous ignorer les warnings et continuer la dépublication ?"
+            ).ask()
+
+        confirm = questionary.confirm(
+            "{} vue(s) matérialisée(s) et {} vue(s) dépendantes seront dépubliées".format(
+                len(process["mat_views"]), len(process["views_dep"])
+            )
+        ).ask()
+        if confirm:
+            depublish(
+                dst_conn_string,
+                logger.path_to_log_file,
+                materialized_views=process["mat_views"],
                 force=force,
             )
 
@@ -292,7 +338,7 @@ def cli_publish():
         logger = process["logger"]
         # Now publish
         confirm = questionary.confirm(
-            "{} vues(s) seront publiés".format(len(process["views"]))
+            "{} vues(s) seront publiée(s)".format(len(process["views"]))
         ).ask()
         if confirm:
             publish(
@@ -300,6 +346,49 @@ def cli_publish():
                 dst_conn_string,
                 logger.path_to_log_file,
                 views=process["views"],
+                force=force,
+            )
+            logger.success = True
+            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            logger.insert_log_row()
+            questionary.print("Script de publication terminé")
+        else:
+            questionary.print("Script de publication annulé")
+    elif object_type == MAT_VIEW:
+        process = main_mat_view_process(src_conn, dst_conn, logger)
+        # Pre Process (dependencies, ect)
+        if logger.error_count_messages != 0:
+            questionary.print(
+                "{} Erreurs rencontrées".format(logger.error_count_messages),
+                style="bold italic fg:red",
+            )
+            questionary.print(",".join(logger.error_messages))
+
+        force = True
+        # check for warnings
+        if process["views_dep"]:
+            questionary.print(
+                ",\n".join(process["views_dep"]), style="bold italic fg:yellow"
+            )
+            force = questionary.confirm(
+                "Souhaitez-vous ignorer les warnings et essayer de publier ?"
+            ).ask()
+        if not force or not process["mat_views"]:
+            questionary.print(no_change_message())
+            return
+        logger = process["logger"]
+        # Now publish
+        confirm = questionary.confirm(
+            "{} vues(s) matérialisée(s) seront publiée(s)".format(
+                len(process["mat_views"])
+            )
+        ).ask()
+        if confirm:
+            publish(
+                src_conn_string,
+                dst_conn_string,
+                logger.path_to_log_file,
+                materialized_views=process["mat_views"],
                 force=force,
             )
             logger.success = True
@@ -406,6 +495,59 @@ def main_view_process(conn_src, conn_dst, logger):
     }
 
 
+def main_mat_view_process(conn_src, conn_dst, logger):
+    "Ask specific mat view questions"
+
+    schema = questionary.select(
+        "Selection du schéma", choices=SchemaQuerier.get_schemas(conn_src)
+    ).ask()
+
+    # Check if schemas exists, raise error if not
+    if not SchemaQuerier.schema_exists(conn_dst, schema):
+        logger.error_messages.append(no_schema_message(schema))
+        return {"success": False, "mat_views": [], "logger": logger, "views_dep": None}
+
+    existing_mat_views = SchemaQuerier.get_materialized_views_from_schema(
+        conn_src, schema
+    )
+    if not existing_mat_views:
+        logger.error_messages.append(no_mat_view_in_schema(schema))
+        return {"success": False, "mat_views": [], "logger": logger, "views_dep": None}
+    mat_views = questionary.checkbox(
+        "Selection du ou des vues matérialisées",
+        choices=existing_mat_views,
+        validate=choice_checker,
+    ).ask()
+
+    src_dependencies = SchemaQuerier.get_dependant_tables_objects(
+        conn_src, existing_mat_views
+    )
+
+    if src_dependencies["views"] is None and src_dependencies["constraints"] is None:
+        questionary.print("Aucune dépendances")
+        tables_dependencies = {"can_publish": True}  # TODO make it more amovran
+    else:
+        tables_dependencies = SchemaQuerier.can_publish_to_dst_server(
+            conn_dst, src_dependencies, schemas=[schema], materialized_views=mat_views
+        )
+    if not tables_dependencies["can_publish"]:
+        logger.error_messages.append(tables_dependencies["table_view_errors"])
+        logger.error_messages.append(tables_dependencies["schema_errors"])
+
+        return {
+            "success": False,
+            "mat_views": mat_views,
+            "views_dep": tables_dependencies["table_view_warnings"],
+            "logger": logger,
+        }
+    return {
+        "success": True,
+        "mat_views": mat_views,
+        "views_dep": tables_dependencies["table_view_warnings"],
+        "logger": logger,
+    }
+
+
 def main_schema_process(conn_src, conn_dst, logger) -> dict:
     """Ask specific schema questions"""
     success = True
@@ -503,6 +645,10 @@ def no_table_in_schema(schema_name):
 
 def no_view_in_schema(schema_name):
     return "Aucune vue se trouve dans le schema {}".format(schema_name)
+
+
+def no_mat_view_in_schema(schema_name):
+    return "Aucune vue matérialisée se trouve dans le schema {}".format(schema_name)
 
 
 def no_change_message():

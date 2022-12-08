@@ -97,13 +97,9 @@ def publish(
         if materialized_views:
             for mat_view in materialized_views or []:
                 sql_query = (
-                    "DROP MATERIALIZED VIEW IF EXISTS {} CASCADE;".format(
-                        mat_view
-                    ).encode("utf8")
+                    "DROP MATERIALIZED VIEW IF EXISTS {} CASCADE;".format(mat_view)
                     if force
-                    else "DROP MATERIALIZED VIEW IF EXISTS {};".format(mat_view).encode(
-                        "utf8"
-                    )
+                    else "DROP MATERIALIZED VIEW IF EXISTS {};".format(mat_view)
                 )
                 receiver.stdin.write(sql_query)
                 receiver.stdin.flush()

@@ -64,12 +64,15 @@ class SchemaQuerier:
     ) -> [str]:
         with database_connection.cursor() as cursor:
             cursor.execute(
-                "SELECT schemaname, matviewname, definition FROM"
+                "SELECT matviewname FROM"
                 " pg_matviews WHERE"
                 " schemaname = '{schema}';".format(schema=schema_name)
             )
-            mat_views = cursor.fetchall()
-            return mat_views
+            mat_views = [
+                "{schema}.{mat_view}".format(schema=schema_name, mat_view=mat_view[0])
+                for mat_view in cursor.fetchall()
+            ]
+        return mat_views
 
     @staticmethod
     def get_dependant_schemas_objects(database_connection: object, schemas) -> [dict]:
@@ -148,7 +151,7 @@ class SchemaQuerier:
         schemas: Optional[List[str]] = [],
         tables: Optional[List[str]] = [],
         views: Optional[List[str]] = [],
-        materialized_views: Optional[List[str]] = None,
+        materialized_views: Optional[List[str]] = [],
     ) -> {dict}:
         """
         Checks that all dependencies of current objects exist in dst database.
@@ -205,6 +208,22 @@ class SchemaQuerier:
         for view in views_not_specified:
             if not SchemaQuerier.schema_view_exists(database_connection, view):
                 schema_errors.insert(0, no_view_message(view))
+
+        get_unique_source_mat_views = list(
+            set(
+                val["dependent_schema_table"]
+                for val in src_dependencies["constraints"] + src_dependencies["views"]
+            )
+        )
+        # Add error if table not in current publish task nor in dst server
+        mat_views_not_specified = [
+            mat_view
+            for mat_view in get_unique_source_mat_views
+            if mat_view not in materialized_views
+        ]
+        for mat_view in mat_views_not_specified:
+            if not SchemaQuerier.schema_view_exists(database_connection, mat_view):
+                schema_errors.insert(0, no_mat_view_message(mat_view))
 
         # Check each dependencies to make sure it can be published
         for dep in src_dependencies["constraints"]:
@@ -325,4 +344,13 @@ def no_view_message(view_name):
     return (
         "La vue {} ne se trouve pas "
         "sur le serveur de destination, merci de le créer/publier \n ".format(view_name)
+    )
+
+
+def no_mat_view_message(mat_view_name):
+    return (
+        "La vue matérialisée {} ne se trouve pas "
+        "sur le serveur de destination, merci de le créer/publier \n ".format(
+            mat_view_name
+        )
     )
