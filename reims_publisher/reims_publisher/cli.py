@@ -7,6 +7,7 @@ from reims_publisher.core.database_manager import (
     get_conn_string_from_service_name,
 )
 from reims_publisher.core.information_schema import SchemaQuerier
+from reims_publisher.core.publish_checker import can_publish_to_dst_server
 from reims_publisher.core.publish import publish
 from reims_publisher.core.depublish import depublish
 from reims_publisher.core.logger import PublisherLogger
@@ -265,7 +266,9 @@ def cli_publish():
                 force=force,
             )
             logger.success = True
-            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            questionary.print(
+                "python3 cli_direct.py {}".format(logger.build_cmd_command())
+            )
             logger.insert_log_row()
             questionary.print("Script de publication terminé")
         else:
@@ -427,7 +430,7 @@ def main_table_process(conn_src, conn_dst, logger):
         questionary.print("Aucune dépendances")
         tables_dependencies = {"can_publish": True}  # TODO make it more amovran
     else:
-        tables_dependencies = SchemaQuerier.can_publish_to_dst_server(
+        tables_dependencies = can_publish_to_dst_server(
             conn_dst, src_dependencies, schemas=[schema], tables=tables
         )
     if not tables_dependencies["can_publish"]:
@@ -474,7 +477,7 @@ def main_view_process(conn_src, conn_dst, logger):
         questionary.print("Aucune dépendances")
         tables_dependencies = {"can_publish": True}  # TODO make it more amovran
     else:
-        tables_dependencies = SchemaQuerier.can_publish_to_dst_server(
+        tables_dependencies = can_publish_to_dst_server(
             conn_dst, src_dependencies, schemas=[schema], views=views
         )
     if not tables_dependencies["can_publish"]:
@@ -527,7 +530,7 @@ def main_mat_view_process(conn_src, conn_dst, logger):
         questionary.print("Aucune dépendances")
         tables_dependencies = {"can_publish": True}  # TODO make it more amovran
     else:
-        tables_dependencies = SchemaQuerier.can_publish_to_dst_server(
+        tables_dependencies = can_publish_to_dst_server(
             conn_dst, src_dependencies, schemas=[schema], materialized_views=mat_views
         )
     if not tables_dependencies["can_publish"]:
@@ -556,6 +559,7 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
         choices=SchemaQuerier.get_schemas(conn_src),
         validate=choice_checker,
     ).ask()
+
     logger.object_names = schemas
     # get src dependant
     src_dependant = SchemaQuerier.get_dependant_schemas_objects(conn_src, schemas)
@@ -602,7 +606,7 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
             "can_publish": True
         }  # TODO make it more amorvan approved
     else:
-        schemas_dependencies = SchemaQuerier.can_publish_to_dst_server(
+        schemas_dependencies = can_publish_to_dst_server(
             conn_dst,
             src_dependant,
             schemas=logger.object_names,

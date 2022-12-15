@@ -6,7 +6,7 @@ def get_service_file():
         service_file = find()
     except FileNotFoundError:
         raise SystemExit(
-            "Absence de fichier pgservice.conf, la variable d'environnement est-elle définie?"
+            f"Absence de fichier pgservice.conf, la variable d'environnement est-elle définie?"
         )
     return service_file
 
