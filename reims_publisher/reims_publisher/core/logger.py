@@ -5,7 +5,8 @@ import configparser
 from pkg_resources import resource_filename
 
 config = configparser.ConfigParser()
-config.read(resource_filename('reims_publisher', 'conf.ini'))
+config.read(resource_filename("reims_publisher", "conf.ini"))
+
 
 class PublisherLogger:
     def __init__(self, conn):
@@ -24,8 +25,10 @@ class PublisherLogger:
         self.create_logging_table()  # need
 
     def create_log_file(self):
-        date_time = datetime.now().strftime("%Y-%m-%d")
-        self.path_to_log_file = "{dir}log{date_time}.log".format(dir=config.get('DEFAULT', 'LogDir'), date_time=date_time)
+        date_time = datetime.now().strftime("%Y-%m-%d-%H-%M")
+        self.path_to_log_file = "{dir}log{date_time}.log".format(
+            dir=config.get("DEFAULT", "LogDir"), date_time=date_time
+        )
         logging.basicConfig(filename=self.path_to_log_file, level=logging.INFO)
 
     def create_logging_schema(self):
@@ -113,17 +116,17 @@ class PublisherLogger:
         "Vues": "vues",
         "Vues Matérialisées": "materialized_views"
         """
-        cmd_command = "-ty {} -src_db {} -dst_db {} ".format(
+        cmd_command = "-ty={} -src_db={} -dst_db={} ".format(
             self.publish_or_depublish, self.src_db, self.dst_db
         )
         if self.object_type == "schemas":
-            cmd_command += "--schemas {}".format(self.object_names)
+            cmd_command += "-schemas={}".format(self.object_names)
         elif self.object_type == "tables":
-            cmd_command += "--tables {}".format(self.object_names)
+            cmd_command += "-tables={}".format(self.object_names)
         elif self.object_type == "views":
-            cmd_command += "--views {}".format(self.object_names)
+            cmd_command += "-views={}".format(self.object_names)
         elif self.object_type == "materialized_views":
-            cmd_command += "--materialized_views {}".format(self.object_names)
+            cmd_command += "-materialized_views={}".format(self.object_names)
         return cmd_command
 
     def insert_log_row(self):

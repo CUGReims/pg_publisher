@@ -8,7 +8,7 @@ import configparser
 from pkg_resources import resource_filename
 
 config = configparser.ConfigParser()
-config.read(resource_filename('reims_publisher', 'conf.ini'))
+config.read(resource_filename("reims_publisher", "conf.ini"))
 
 
 class SchemaQuerier:
@@ -18,13 +18,15 @@ class SchemaQuerier:
         :param database_connection:
         :return: a list of existing schemas from the database
         """
-        s = config.get('DEFAULT', 'IgnoredSchemas')
+        s = config.get("DEFAULT", "IgnoredSchemas")
 
         with database_connection.cursor() as cursor:
             cursor.execute(
                 "SELECT DISTINCT(table_schema) from"
                 " information_schema.tables WHERE"
-                " table_schema not in ({})".format(','.join("'{0}'".format(x) for x in s.split(',')))
+                " table_schema not in ({})".format(
+                    ",".join("'{0}'".format(x) for x in s.split(","))
+                )
             )
             schemas = [r[0] for r in cursor.fetchall()]
             return schemas

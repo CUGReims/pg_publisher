@@ -266,7 +266,9 @@ def cli_publish():
                 force=force,
             )
             logger.success = True
-            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            questionary.print(
+                "python3 cli_direct.py {}".format(logger.build_cmd_command())
+            )
             logger.insert_log_row()
             questionary.print("Script de publication terminé")
         else:
