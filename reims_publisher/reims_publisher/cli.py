@@ -204,7 +204,7 @@ def cli_depublish():
     dst_conn.close()
 
 
-def cli_publish():
+def cli_publish(no_acl_no_owner):
     available_services = get_services()
     service_db_src = questionary.select(
         "Selection de la base de données source", choices=available_services
@@ -269,6 +269,7 @@ def cli_publish():
                 dst_conn_string,
                 logger.path_to_log_file,
                 schemas=process["schemas"],
+                no_acl_no_owner=no_acl_no_owner,
                 force=force,
             )
             logger.success = True
@@ -315,6 +316,7 @@ def cli_publish():
                 dst_conn_string,
                 logger.path_to_log_file,
                 tables=process["tables"],
+                no_acl_no_owner=no_acl_no_owner,
                 force=force,
             )
             logger.success = True
@@ -353,14 +355,15 @@ def cli_publish():
                 len(process["views"]), service_db_src, service_db_dst
             )
         ).ask()
+        publish(
+            src_conn_string,
+            dst_conn_string,
+            logger.path_to_log_file,
+            views=process["views"],
+            force=force,
+            no_acl_no_owner=no_acl_no_owner,
+        )
         if confirm:
-            publish(
-                src_conn_string,
-                dst_conn_string,
-                logger.path_to_log_file,
-                views=process["views"],
-                force=force,
-            )
             logger.success = True
             questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
@@ -402,6 +405,7 @@ def cli_publish():
                 dst_conn_string,
                 logger.path_to_log_file,
                 materialized_views=process["mat_views"],
+                no_acl_no_owner=no_acl_no_owner,
                 force=force,
             )
             logger.success = True
@@ -672,10 +676,13 @@ def no_change_message():
 @click.command()
 def main():
     publish_ = questionary.select(
-        "Que souhaitez vous faire ?", choices=["Publier", "Dépuplier"]
+        "Que souhaitez vous faire ?",
+        choices=["Publier", "Publier avec les droits", "Dépuplier"],
     ).ask()
     if publish_ == "Publier":
-        cli_publish()
+        cli_publish(True)
+    elif publish_ == "Publier avec les droits":
+        cli_publish(False)
     else:
         cli_depublish()
 

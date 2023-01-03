@@ -26,6 +26,7 @@ def publish(
     tables: Optional[List[str]] = None,
     views: Optional[List[str]] = None,
     materialized_views: Optional[List[str]] = None,
+    no_acl_no_owner: Optional[bool] = False,
     force: Optional[bool] = True,
 ):
     with open(log_file_path, "a") as f:
@@ -39,7 +40,7 @@ def publish(
 
         receiver.stdin.write("\\set ON_ERROR_STOP on\n")
         receiver.stdin.flush()
-
+        dump_command = ["pg_dump", "-Ox"] if no_acl_no_owner else ["pg_dump"]
         if schemas:
             for schema in schemas:
                 sql_query = (
@@ -50,7 +51,7 @@ def publish(
                 receiver.stdin.write(sql_query)
                 receiver.stdin.flush()
             emitter = subprocess.Popen(
-                ["pg_dump"]
+                dump_command
                 + [arg for schema in schemas for arg in ["-n", schema]]
                 + [src_conn_string],
                 stdout=receiver.stdin,
@@ -68,7 +69,7 @@ def publish(
                 receiver.stdin.write(sql_query)
                 receiver.stdin.flush()
             emitter = subprocess.Popen(
-                ["pg_dump"]
+                dump_command
                 + [arg for table in tables for arg in ["-t", table]]
                 + [src_conn_string],
                 stdout=receiver.stdin,
@@ -86,7 +87,7 @@ def publish(
                 receiver.stdin.write(sql_query)
                 receiver.stdin.flush()
             emitter = subprocess.Popen(
-                ["pg_dump"]
+                dump_command
                 + [arg for view in views for arg in ["-t", view]]
                 + [src_conn_string],
                 stdout=receiver.stdin,
@@ -104,7 +105,7 @@ def publish(
                 receiver.stdin.write(sql_query)
                 receiver.stdin.flush()
             emitter = subprocess.Popen(
-                ["pg_dump"]
+                dump_command
                 + [arg for mat_view in materialized_views for arg in ["-t", mat_view]]
                 + [src_conn_string],
                 stdout=receiver.stdin,
