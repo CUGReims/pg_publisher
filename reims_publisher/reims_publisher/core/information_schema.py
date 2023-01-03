@@ -28,7 +28,7 @@ class SchemaQuerier:
                     ",".join("'{0}'".format(x) for x in s.split(","))
                 )
             )
-            schemas = [r[0] for r in cursor.fetchall()]
+            schemas = sorted([r[0] for r in cursor.fetchall()])
             return schemas
 
     @staticmethod
@@ -45,10 +45,12 @@ class SchemaQuerier:
                 " table_schema = '{schema}' AND"
                 " table_type = 'BASE TABLE';".format(schema=schema_name)
             )
-            tables = [
-                "{schema}.{table}".format(schema=schema_name, table=table[0])
-                for table in cursor.fetchall()
-            ]
+            tables = sorted(
+                [
+                    "{schema}.{table}".format(schema=schema_name, table=table[0])
+                    for table in cursor.fetchall()
+                ]
+            )
             return tables
 
     @staticmethod
@@ -59,10 +61,12 @@ class SchemaQuerier:
                 " information_schema.views WHERE"
                 " table_schema = '{schema}';".format(schema=schema_name)
             )
-            views = [
-                "{schema}.{table}".format(schema=schema_name, table=view[0])
-                for view in cursor.fetchall()
-            ]
+            views = sorted(
+                [
+                    "{schema}.{table}".format(schema=schema_name, table=view[0])
+                    for view in cursor.fetchall()
+                ]
+            )
             return views
 
     @staticmethod
@@ -75,10 +79,14 @@ class SchemaQuerier:
                 " pg_matviews WHERE"
                 " schemaname = '{schema}';".format(schema=schema_name)
             )
-            mat_views = [
-                "{schema}.{mat_view}".format(schema=schema_name, mat_view=mat_view[0])
-                for mat_view in cursor.fetchall()
-            ]
+            mat_views = sorted(
+                [
+                    "{schema}.{mat_view}".format(
+                        schema=schema_name, mat_view=mat_view[0]
+                    )
+                    for mat_view in cursor.fetchall()
+                ]
+            )
         return mat_views
 
     @staticmethod
