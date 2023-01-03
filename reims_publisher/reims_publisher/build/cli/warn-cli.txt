@@ -105,7 +105,7 @@ missing module named 'setuptools.extern.packaging.tags' - imported by setuptools
 missing module named trove_classifiers - imported by setuptools.config._validate_pyproject.formats (optional)
 missing module named 'setuptools.extern.packaging.specifiers' - imported by setuptools.config.setupcfg (top-level), setuptools.config._apply_pyprojecttoml (delayed)
 missing module named 'setuptools.extern.packaging.requirements' - imported by setuptools.config.setupcfg (top-level)
-missing module named pyimod02_importers - imported by /usr/local/lib/python3.8/dist-packages/PyInstaller/hooks/rthooks/pyi_rth_pkgutil.py (top-level), /usr/local/lib/python3.8/dist-packages/PyInstaller/hooks/rthooks/pyi_rth_pkgres.py (top-level)
+missing module named pyimod02_importers - imported by /usr/local/lib/python3.8/dist-packages/PyInstaller/hooks/rthooks/pyi_rth_pkgres.py (top-level), /usr/local/lib/python3.8/dist-packages/PyInstaller/hooks/rthooks/pyi_rth_pkgutil.py (top-level)
 missing module named _scproxy - imported by urllib.request (conditional)
 missing module named netbios - imported by uuid (delayed)
 missing module named win32wnet - imported by uuid (delayed)

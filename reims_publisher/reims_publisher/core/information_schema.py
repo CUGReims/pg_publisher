@@ -1,3 +1,5 @@
+import os.path
+
 from reims_publisher.core.sql_queries import (
     get_schemas_dependencies,
     get_tables_view_dependencies,
@@ -8,7 +10,10 @@ import configparser
 from pkg_resources import resource_filename
 
 config = configparser.ConfigParser()
-config.read(resource_filename("reims_publisher", "conf.ini"))
+if os.path.exists("conf.ini"):
+    config.read("conf.ini")
+else:
+    config.read(resource_filename("reims_publisher", "conf.ini"))
 
 
 class SchemaQuerier:
@@ -18,7 +23,7 @@ class SchemaQuerier:
         :param database_connection:
         :return: a list of existing schemas from the database
         """
-        s = config.get("DEFAULT", "IgnoredSchemas")
+        s = config.get("DEFAULT", "ignoredSchemas")
 
         with database_connection.cursor() as cursor:
             cursor.execute(
@@ -28,7 +33,7 @@ class SchemaQuerier:
                     ",".join("'{0}'".format(x) for x in s.split(","))
                 )
             )
-            schemas = [r[0] for r in cursor.fetchall()]
+            schemas = sorted([r[0] for r in cursor.fetchall()])
             return schemas
 
     @staticmethod
@@ -45,10 +50,12 @@ class SchemaQuerier:
                 " table_schema = '{schema}' AND"
                 " table_type = 'BASE TABLE';".format(schema=schema_name)
             )
-            tables = [
-                "{schema}.{table}".format(schema=schema_name, table=table[0])
-                for table in cursor.fetchall()
-            ]
+            tables = sorted(
+                [
+                    "{schema}.{table}".format(schema=schema_name, table=table[0])
+                    for table in cursor.fetchall()
+                ]
+            )
             return tables
 
     @staticmethod
@@ -59,10 +66,12 @@ class SchemaQuerier:
                 " information_schema.views WHERE"
                 " table_schema = '{schema}';".format(schema=schema_name)
             )
-            views = [
-                "{schema}.{table}".format(schema=schema_name, table=view[0])
-                for view in cursor.fetchall()
-            ]
+            views = sorted(
+                [
+                    "{schema}.{table}".format(schema=schema_name, table=view[0])
+                    for view in cursor.fetchall()
+                ]
+            )
             return views
 
     @staticmethod
@@ -75,10 +84,14 @@ class SchemaQuerier:
                 " pg_matviews WHERE"
                 " schemaname = '{schema}';".format(schema=schema_name)
             )
-            mat_views = [
-                "{schema}.{mat_view}".format(schema=schema_name, mat_view=mat_view[0])
-                for mat_view in cursor.fetchall()
-            ]
+            mat_views = sorted(
+                [
+                    "{schema}.{mat_view}".format(
+                        schema=schema_name, mat_view=mat_view[0]
+                    )
+                    for mat_view in cursor.fetchall()
+                ]
+            )
         return mat_views
 
     @staticmethod
@@ -155,7 +168,7 @@ class SchemaQuerier:
         database_connection: object, schema_table_name: str
     ) -> [bool]:
         """
-        :param table_name schema.table
+        :param schema_table_name schema.table
         :param database_connection:
         :return: bool
         """

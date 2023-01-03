@@ -5,7 +5,10 @@ import configparser
 from pkg_resources import resource_filename
 
 config = configparser.ConfigParser()
-config.read(resource_filename("reims_publisher", "conf.ini"))
+if os.path.exists("conf.ini"):
+    config.read("conf.ini")
+else:
+    config.read(resource_filename("reims_publisher", "conf.ini"))
 
 
 class PublisherLogger:
@@ -27,7 +30,7 @@ class PublisherLogger:
     def create_log_file(self):
         date_time = datetime.now().strftime("%Y-%m-%d-%H-%M")
         self.path_to_log_file = "{dir}log{date_time}.log".format(
-            dir=config.get("DEFAULT", "LogDir"), date_time=date_time
+            dir=config.get("DEFAULT", "logDir"), date_time=date_time
         )
         logging.basicConfig(filename=self.path_to_log_file, level=logging.INFO)
 
