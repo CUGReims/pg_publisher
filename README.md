@@ -41,7 +41,7 @@ make tests
 ## Creating a binary for both Windows and Linux
 
 ```shell
-pyinstaller reims_publisher/cli.py -F --onefile --hidden-import=configparser
+pyinstaller --clean cli.spec
 cd dist
 ./cli.py
 ```

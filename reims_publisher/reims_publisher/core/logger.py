@@ -10,6 +10,7 @@ if os.path.exists("conf.ini"):
 else:
     config.read(resource_filename("reims_publisher", "conf.ini"))
 
+
 class PublisherLogger:
     def __init__(self, conn):
         self.path_to_log_file = None  # need
