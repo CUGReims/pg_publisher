@@ -16,7 +16,7 @@ class PublisherLogger:
         self.path_to_log_file = None  # need
         self._src_db = None  # need
         self._dst_db = None  # need
-        self.publish_or_depublish = None  # need
+        self.publish_type = None  # need
         self._success = False
         self._object_names = None
         self._object_type = None
@@ -55,7 +55,7 @@ class PublisherLogger:
                         log_complet varchar(150), --chemin vers fichier de log
                         messager_erreur varchar(15000),
                         commande varchar(1500),
-                        publier_depublier varchar(15)
+                        publier_depublier varchar(50)
                       );
                     """
                 )
@@ -86,7 +86,7 @@ class PublisherLogger:
 
     @property
     def object_names(self):
-        return ", ".join(self._object_names) if self._object_names is not None else None
+        return ",".join(self._object_names) if self._object_names is not None else None
 
     @object_names.setter
     def object_names(self, object_names):
@@ -120,7 +120,7 @@ class PublisherLogger:
         "Vues Matérialisées": "materialized_views"
         """
         cmd_command = "-ty={} -src_db={} -dst_db={} ".format(
-            self.publish_or_depublish, self.src_db, self.dst_db
+            self.publish_type, self.src_db, self.dst_db
         )
         if self.object_type == "schemas":
             cmd_command += "-schemas={}".format(self.object_names)
@@ -145,7 +145,7 @@ class PublisherLogger:
         '{path_to_log_file}',
         '{error_messages}',
         '{command_pour_publish_cron}',
-        '{publish_or_depublish}'
+        '{publish_type}'
         )""".format(
             user=self.user,
             src_db=self.src_db,
@@ -156,7 +156,7 @@ class PublisherLogger:
             path_to_log_file=self.path_to_log_file,
             error_messages=",".join(self.error_messages),
             command_pour_publish_cron=self.build_cmd_command(),
-            publish_or_depublish=self.publish_or_depublish,
+            publish_type=self.publish_type,
         )
         with self.conn:
             with self.conn.cursor() as cursor:

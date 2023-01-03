@@ -44,7 +44,7 @@ def cli_depublish():
     ).ask()
     # init logger
     logger = PublisherLogger(dst_conn)
-    logger.publish_or_depublish = "depublication"
+    logger.publish_type = "depublication"
     logger.src_db = service_db_dst
     logger.dst_db = service_db_dst
     if object_type == SCHEMAS:
@@ -226,7 +226,8 @@ def cli_publish(no_acl_no_owner):
 
     # init logger
     logger = PublisherLogger(dst_conn)
-    logger.publish_or_depublish = "publication"
+    publish_type = "publication_with_acl_owner" if no_acl_no_owner else "publication"
+    logger.publish_type = publish_type
     logger.src_db = service_db_src
     logger.dst_db = service_db_dst
 
