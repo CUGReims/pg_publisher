@@ -34,6 +34,7 @@ def cli_depublish():
     ).ask()
 
     # dst_conn
+
     dst_conn_string = get_conn_string_from_service_name(service_db_dst)
     dst_conn = connect(dst_conn_string)
 
@@ -61,11 +62,12 @@ def cli_depublish():
             ).ask()
 
         confirm = questionary.confirm(
-            "{} schéma(s), {} table(s), {} vue(s) et {} vues matéralisée(s) seront dépubliés".format(
+            "{} schéma(s), {} table(s), {} vue(s) et {} vues matéralisée(s) seront dépubliés de la base {}".format(
                 len(process["schemas"]),
                 len(process["tables"]),
                 len(process["views"]),
                 len(process["materialized_views"]),
+                service_db_dst,
             )
         ).ask()
         if confirm:
@@ -102,8 +104,8 @@ def cli_depublish():
                 "Souhaitez-vous ignorer les warnings et continuer la dépublication ?"
             ).ask()
         confirm = questionary.confirm(
-            "{} table(s) et {} vue(s) seront dépubliés".format(
-                len(process["tables"]), len(process["views_dep"])
+            "{} table(s) et {} vue(s) seront dépubliés de la base {}".format(
+                len(process["tables"]), len(process["views_dep"]), service_db_dst
             )
         ).ask()
         if confirm:
@@ -141,8 +143,8 @@ def cli_depublish():
                 "Souhaitez-vous ignorer les warnings et continuer la dépublication ?"
             ).ask()
         confirm = questionary.confirm(
-            "{} vue(s) et {} vue(s) dépendantes seront dépubliées".format(
-                len(process["views"]), len(process["views_dep"])
+            "{} vue(s) et {} vue(s) dépendantes seront dépubliées de la base {}".format(
+                len(process["views"]), len(process["views_dep"]), service_db_dst
             )
         ).ask()
         if confirm:
@@ -182,8 +184,8 @@ def cli_depublish():
             ).ask()
 
         confirm = questionary.confirm(
-            "{} vue(s) matérialisée(s) et {} vue(s) dépendantes seront dépubliées".format(
-                len(process["mat_views"]), len(process["views_dep"])
+            "{} vue(s) matérialisée(s) et {} vue(s) dépendantes seront dépubliées de la base {}".format(
+                len(process["mat_views"]), len(process["views_dep"]), service_db_dst
             )
         ).ask()
         if confirm:
@@ -253,8 +255,12 @@ def cli_publish():
         logger = process["logger"]
         # Now publish
         confirm = questionary.confirm(
-            "{} schéma(s), {} table(s) et {} vue(s) seront publiés".format(
-                len(process["schemas"]), len(process["tables"]), len(process["views"])
+            "{} schéma(s), {} table(s) et {} vue(s) seront publiés de la base {} vers la base {}".format(
+                len(process["schemas"]),
+                len(process["tables"]),
+                len(process["views"]),
+                service_db_src,
+                service_db_dst,
             )
         ).ask()
         if confirm:
@@ -299,7 +305,9 @@ def cli_publish():
         logger = process["logger"]
         # Now publish
         confirm = questionary.confirm(
-            "{} table(s) seront publiés".format(len(process["tables"]))
+            "{} table(s) seront publiés de la base {} vers la base {}".format(
+                len(process["tables"]), service_db_src, service_db_dst
+            )
         ).ask()
         if confirm:
             publish(
@@ -341,7 +349,9 @@ def cli_publish():
         logger = process["logger"]
         # Now publish
         confirm = questionary.confirm(
-            "{} vues(s) seront publiée(s)".format(len(process["views"]))
+            "{} vues(s) seront publiée(s) de la base {} vers la base {}".format(
+                len(process["views"]), service_db_src, service_db_dst
+            )
         ).ask()
         if confirm:
             publish(
@@ -382,8 +392,8 @@ def cli_publish():
         logger = process["logger"]
         # Now publish
         confirm = questionary.confirm(
-            "{} vues(s) matérialisée(s) seront publiée(s)".format(
-                len(process["mat_views"])
+            "{} vues(s) matérialisée(s) seront publiée(s) de la base {} vers la base {}".format(
+                len(process["mat_views"]), service_db_src, service_db_dst
             )
         ).ask()
         if confirm:
