@@ -62,7 +62,8 @@ def cli_depublish():
             ).ask()
 
         confirm = questionary.confirm(
-            "{} schéma(s), {} table(s), {} vue(s) et {} vues matéralisée(s) seront dépubliés de la base {}".format(
+            "{} schéma(s), {} table(s), {} vue(s) et {} vues matéralisée(s) seront "
+            "dépubliés de la base {}".format(
                 len(process["schemas"]),
                 len(process["tables"]),
                 len(process["views"]),
@@ -104,7 +105,7 @@ def cli_depublish():
                 "Souhaitez-vous ignorer les warnings et continuer la dépublication ?"
             ).ask()
         confirm = questionary.confirm(
-            "{} table(s) et {} vue(s) seront dépubliés de la base {}".format(
+            "{} table(s) et {} vue(s) seront dépubliée(s) de la base {}".format(
                 len(process["tables"]), len(process["views_dep"]), service_db_dst
             )
         ).ask()

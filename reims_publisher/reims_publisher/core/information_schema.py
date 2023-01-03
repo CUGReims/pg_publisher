@@ -18,7 +18,7 @@ class SchemaQuerier:
         :param database_connection:
         :return: a list of existing schemas from the database
         """
-        s = config.get("DEFAULT", "IgnoredSchemas")
+        s = config.get("DEFAULT", "ignoredSchemas")
 
         with database_connection.cursor() as cursor:
             cursor.execute(
@@ -163,7 +163,7 @@ class SchemaQuerier:
         database_connection: object, schema_table_name: str
     ) -> [bool]:
         """
-        :param table_name schema.table
+        :param schema_table_name schema.table
         :param database_connection:
         :return: bool
         """
