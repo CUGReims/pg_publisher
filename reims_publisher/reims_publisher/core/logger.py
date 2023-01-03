@@ -5,8 +5,10 @@ import configparser
 from pkg_resources import resource_filename
 
 config = configparser.ConfigParser()
-config.read(resource_filename("reims_publisher", "conf.ini"))
-
+if os.path.exists("conf.ini"):
+    config.read("conf.ini")
+else:
+    config.read(resource_filename("reims_publisher", "conf.ini"))
 
 class PublisherLogger:
     def __init__(self, conn):
