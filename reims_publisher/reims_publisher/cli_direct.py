@@ -68,9 +68,9 @@ else:
     logger.object_names = mat_views
     logger.object_type = "materialized_views"
 
-if args.Type == "publication" or args.Type == 'publication_with_acl_owner':
+if args.Type == "publication" or args.Type == "publication_with_acl_owner":
     no_acl_no_owner = True
-    if args.Type == 'publicationçwith_acl_owner':
+    if args.Type == "publicationçwith_acl_owner":
         no_acl_no_owner = False
     logger.publish_or_depublish = "publication"
 
@@ -84,7 +84,7 @@ if args.Type == "publication" or args.Type == 'publication_with_acl_owner':
             views=views,
             materialized_views=mat_views,
             force=True,
-            no_acl_no_owner=no_acl_no_owner
+            no_acl_no_owner=no_acl_no_owner,
         )
         logger.success = True
     except Exception:
