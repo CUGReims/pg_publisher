@@ -72,9 +72,9 @@ else:
     logger.object_type = "materialized_views"
 
 if args.Type == "publication" or args.Type == "publication_with_acl_owner":
-    no_acl_no_owner = True
+    no_acl_no_owner = False
     if args.Type == "publication_with_acl_owner":
-        no_acl_no_owner = False
+        no_acl_no_owner = True
     logger.publish_or_depublish = "publication"
 
     try:
