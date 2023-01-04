@@ -22,7 +22,7 @@ parser.add_argument(
     help="service value for destination database from PGSERVICEFILE",
 )
 parser.add_argument(
-    "-ty", "--Type", required=True, help="publication ou depublication task"
+    "-ty", "--Type", required=True, help="publication, publication_with_acl_owner or depublication task"
 )
 parser.add_argument("-s", "--Schemas", help="List schemas with ; separator")
 parser.add_argument("-t", "--Tables", help="List tables with ; separator")
@@ -70,7 +70,7 @@ else:
 
 if args.Type == "publication" or args.Type == "publication_with_acl_owner":
     no_acl_no_owner = True
-    if args.Type == "publicationçwith_acl_owner":
+    if args.Type == "publication_with_acl_owner":
         no_acl_no_owner = False
     logger.publish_or_depublish = "publication"
 
