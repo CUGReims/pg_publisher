@@ -22,7 +22,10 @@ parser.add_argument(
     help="service value for destination database from PGSERVICEFILE",
 )
 parser.add_argument(
-    "-ty", "--Type", required=True, help="publication, publication_with_acl_owner or depublication task"
+    "-ty",
+    "--Type",
+    required=True,
+    help="publication, publication_with_acl_owner or depublication task",
 )
 parser.add_argument("-s", "--Schemas", help="List schemas with ; separator")
 parser.add_argument("-t", "--Tables", help="List tables with ; separator")
