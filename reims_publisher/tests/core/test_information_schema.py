@@ -29,8 +29,8 @@ def test_schema_querier_get_views_from_schema(views, src_conn):
 def test_schema_querier_get_schemas_with_views(views, src_conn):
     from reims_publisher.core.information_schema import SchemaQuerier
 
-    existing_views = SchemaQuerier.get_schemas_with_views(src_conn)
-    assert len(existing_views) == 3
+    existing_schemas = SchemaQuerier.get_schemas_with_views(src_conn)
+    assert len(existing_schemas) == 3
 
 
 @pytest.mark.usefixtures("materialized_views")

@@ -46,7 +46,7 @@ class SchemaQuerier:
                 " table_schema not in ({})".format(
                     ",".join("'{0}'".format(x) for x in s.split(","))
                 )
-                )
+            )
             schemas_with_views = sorted([r[0] for r in cursor.fetchall()])
             return schemas_with_views
 
@@ -108,7 +108,6 @@ class SchemaQuerier:
             )
         return mat_views
 
-
     @staticmethod
     def get_schemas_with_matviews(database_connection: object) -> [str]:
         s = config.get("DEFAULT", "ignoredSchemas")
@@ -122,7 +121,6 @@ class SchemaQuerier:
             )
             schemas_with_views = sorted([r[0] for r in cursor.fetchall()])
             return schemas_with_views
-
 
     @staticmethod
     def get_dependant_schemas_objects(database_connection: object, schemas) -> [dict]:
