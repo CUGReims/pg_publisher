@@ -471,7 +471,7 @@ def main_view_process(conn_src, conn_dst, logger):
     "Ask specific view questions"
 
     schema = questionary.select(
-        "Selection du schéma", choices=SchemaQuerier.get_schemas(conn_src)
+        "Selection du schéma", choices=SchemaQuerier.get_schemas_with_views(conn_src)
     ).ask()
 
     # Check if schemas exists, raise error if not
@@ -518,7 +518,7 @@ def main_mat_view_process(conn_src, conn_dst, logger):
     "Ask specific mat view questions"
 
     schema = questionary.select(
-        "Selection du schéma", choices=SchemaQuerier.get_schemas(conn_src)
+        "Selection du schéma", choices=SchemaQuerier.get_schemas_with_matviews(conn_src)
     ).ask()
 
     # Check if schemas exists, raise error if not
