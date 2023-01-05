@@ -27,7 +27,7 @@ class SchemaQuerier:
 
         with database_connection.cursor() as cursor:
             cursor.execute(
-                "SELECT DISTINCT(table_schema) from"
+                "SELECT DISTINCT(table_schema) FROM"
                 " information_schema.tables WHERE"
                 " table_schema not in ({})".format(
                     ",".join("'{0}'".format(x) for x in s.split(","))
@@ -35,6 +35,20 @@ class SchemaQuerier:
             )
             schemas = sorted([r[0] for r in cursor.fetchall()])
             return schemas
+
+    @staticmethod
+    def get_schemas_with_views(database_connection: object) -> [str]:
+        s = config.get("DEFAULT", "ignoredSchemas")
+        with database_connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT DISTINCT(table_schema) FROM"
+                " information_schema.views WHERE"
+                " table_schema not in ({})".format(
+                    ",".join("'{0}'".format(x) for x in s.split(","))
+                )
+                )
+            schemas_with_views = sorted([r[0] for r in cursor.fetchall()])
+            return schemas_with_views
 
     @staticmethod
     def get_tables_from_schema(database_connection: object, schema_name: str) -> [str]:
@@ -93,6 +107,22 @@ class SchemaQuerier:
                 ]
             )
         return mat_views
+
+
+    @staticmethod
+    def get_schemas_with_matviews(database_connection: object) -> [str]:
+        s = config.get("DEFAULT", "ignoredSchemas")
+        with database_connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT DISTINCT(schemaname) FROM"
+                " pg_matviews WHERE"
+                " schemaname not in ({})".format(
+                    ",".join("'{0}'".format(x) for x in s.split(","))
+                )
+            )
+            schemas_with_views = sorted([r[0] for r in cursor.fetchall()])
+            return schemas_with_views
+
 
     @staticmethod
     def get_dependant_schemas_objects(database_connection: object, schemas) -> [dict]:
