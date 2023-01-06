@@ -159,6 +159,20 @@ class SchemaQuerier:
         }
 
     @staticmethod
+    def get_all_tables_views_in_schema(database_connection: object, schemas):
+        joined_schemas = ", ".join(f"'{schema}'" for schema in schemas)
+        with database_connection.cursor() as cursor:
+            sql_union_query = """SELECT 'view', viewname as name FROM pg_views
+                                    WHERE schemaname in ({schemas})
+                                UNION
+                                 SELECT 'table', tablename as name FROM pg_tables
+                                   WHERE schemaname in ({schemas});""".format(
+                schemas=joined_schemas
+            )
+            cursor.execute(sql_union_query)
+            return cursor.fetchall()
+
+    @staticmethod
     def get_dependant_tables_objects(database_connection: object, tables) -> [dict]:
         with database_connection.cursor() as cursor:
             cursor.execute(get_tables_view_dependencies(tables))

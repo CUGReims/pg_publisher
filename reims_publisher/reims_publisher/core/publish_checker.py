@@ -21,6 +21,7 @@ def can_publish_to_dst_server(
     :return: {can_publish : Bool : schema_errors: [], table_view_errors: []}
     """
     schema_errors = []
+    schema_dependencies_depublish = []
     table_view_errors = []
     table_view_warnings = []
     # Keep only schemas that aren't referenced in current publish task
@@ -30,6 +31,12 @@ def can_publish_to_dst_server(
             for val in src_dependencies["constraints"] + src_dependencies["views"]
         )
     )
+    if schemas:
+        for dep in SchemaQuerier.get_all_tables_views_in_schema(
+            database_connection, schemas
+        ):
+            schema_dependencies_depublish.append(schema_dependence_message(dep))
+
     schemas_not_specified = [
         schema for schema in get_unique_source_schemas if schema not in schemas
     ]
@@ -140,6 +147,7 @@ def can_publish_to_dst_server(
         if len(schema_errors) == 0 and len(table_view_errors) == 0
         else False,
         "schema_errors": list(set(schema_errors)),
+        "schema_dependencies_depublish": schema_dependencies_depublish,
         "table_view_errors": list(set(table_view_errors)),
         "table_view_warnings": list(set(table_view_warnings)),
     }
@@ -176,4 +184,10 @@ def no_mat_view_message(mat_view_name):
         "sur le serveur de destination, merci de le créer/publier \n ".format(
             mat_view_name
         )
+    )
+
+
+def schema_dependence_message(dep_tuple):
+    return "La {} {} se trouve dans le schema en cours de dépublication et sera supprimée".format(
+        dep_tuple[0], dep_tuple[1]
     )
