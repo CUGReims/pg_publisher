@@ -60,7 +60,8 @@ def cli_depublish():
             force = questionary.confirm(
                 "Souhaitez-vous ignorer les warnings et essayer de depublier ?"
             ).ask()
-
+        for dep in process["schema_dependencies_depublish"]:
+            questionary.print(dep, style="bold italic fg:yellow")
         confirm = questionary.confirm(
             "{} schéma(s), {} table(s), {} vue(s) et {} vues matéralisée(s) seront "
             "dépubliés de la base {}".format(
@@ -641,6 +642,9 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
         "schemas": schemas,
         "tables": tables_to_be_published,
         "views": views_to_be_published,
+        "schema_dependencies_depublish": schemas_dependencies[
+            "schema_dependencies_depublish"
+        ],
         "materialized_views": materialized_views_to_be_published,
         "logger": logger,
     }
