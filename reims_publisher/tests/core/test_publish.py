@@ -32,11 +32,7 @@ def dst_schema_not_owned(dst_conn):
 
 @pytest.mark.usefixtures("src_table")
 def test_publish_schema_not_owned(
-    src_conn_string,
-    some_user,
-    src_table,
-    dst_schema_not_owned,
-    dst_conn,
+    src_conn_string, some_user, src_table, dst_schema_not_owned, dst_conn
 ):
     from reims_publisher.core.publish import publish, PsqlOperationalError
 
@@ -65,21 +61,35 @@ def test_publish_table_success(
 
 @pytest.mark.usefixtures("src_view")
 def test_publish_view_missing_schema(
-    src_conn_string, dst_conn_string, src_table, dst_schema, dst_conn, log_file,
+    src_conn_string, dst_conn_string, src_table, dst_schema, dst_conn, log_file
 ):
     from reims_publisher.core.publish import publish, PsqlOperationalError
 
     with pytest.raises(PsqlOperationalError) as excinfo:
-        publish(src_conn_string, dst_conn_string, "/tmp/thisisalog.log", views=["schema.view"])
+        publish(
+            src_conn_string,
+            dst_conn_string,
+            "/tmp/thisisalog.log",
+            views=["schema.view"],
+        )
     assert 'relation "schema.table" does not exist' in str(excinfo.value)
 
 
 @pytest.mark.usefixtures("src_view")
 def test_publish_view_success(
-    src_conn_string, dst_conn_string, dst_table, src_table, dst_schema, dst_conn, log_file,
+    src_conn_string,
+    dst_conn_string,
+    dst_table,
+    src_table,
+    dst_schema,
+    dst_conn,
+    log_file,
 ):
     from reims_publisher.core.publish import publish
-    publish(src_conn_string, dst_conn_string, "/tmp/thisisalog.log", views=["schema.view"])
+
+    publish(
+        src_conn_string, dst_conn_string, "/tmp/thisisalog.log", views=["schema.view"]
+    )
     with dst_conn:
         with dst_conn.cursor() as cursor:
             cursor.execute("SELECT data FROM schema.view WHERE num = 100;")

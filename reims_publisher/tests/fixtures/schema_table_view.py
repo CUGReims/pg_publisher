@@ -52,9 +52,7 @@ def src_table(src_conn, src_schema):
 def src_view(src_conn, src_schema, src_table):
     with src_conn:
         with src_conn.cursor() as cursor:
-            cursor.execute(
-                "CREATE VIEW schema.view AS SELECT * FROM schema.table;"
-            )
+            cursor.execute("CREATE VIEW schema.view AS SELECT * FROM schema.table;")
     yield
     with src_conn:
         with src_conn.cursor() as cursor:
@@ -72,6 +70,7 @@ def src_mat_view(src_conn, src_schema, src_table):
     with src_conn:
         with src_conn.cursor() as cursor:
             cursor.execute("DROP MATERIALIZED VIEW schema.mat_view CASCADE;")
+
 
 @pytest.fixture
 def dst_table(dst_conn, dst_schema):

@@ -85,11 +85,7 @@ GRANT CONNECT ON DATABASE {os.environ["DST_PGDATABASE"]} TO some_user;
             )
 
     yield "host={DST_PGHOST} dbname={DST_PGDATABASE} user={DST_PGUSER} password={DST_PGPASSWORD}".format(
-        **{
-            **os.environ,
-            "DST_PGUSER": "some_user",
-            "DST_PGPASSWORD": "test",
-        }
+        **{**os.environ, "DST_PGUSER": "some_user", "DST_PGPASSWORD": "test"}
     )
 
     with dst_conn:
