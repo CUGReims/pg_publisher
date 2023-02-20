@@ -130,6 +130,8 @@ class PublisherLogger:
             cmd_command += "-views={}".format(self.object_names)
         elif self.object_type == "materialized_views":
             cmd_command += "-materialized_views={}".format(self.object_names)
+        else:
+            raise Exception("object_type is not valid: {}".format(self.object_type))
         return cmd_command
 
     def insert_log_row(self):

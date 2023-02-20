@@ -18,7 +18,7 @@ def can_publish_to_dst_server(
     :param materialized_views: list of materialized views in schemas or specified by the user
     :param database_connection: the connection to the dst database
     :param src_dependencies: list of dependencies from schemas or tables
-    :return: {can_publish : Bool : schema_errors: [], table_view_errors: []}
+    :return: {can_publish : Bool : schema_errors: [publish_type], table_view_errors: []}
     """
     schema_errors = []
     schema_dependencies_depublish = []

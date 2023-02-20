@@ -47,6 +47,7 @@ def cli_depublish():
     logger.publish_type = "depublication"
     logger.src_db = service_db_dst
     logger.dst_db = service_db_dst
+    logger.object_type = object_type
     if object_type == SCHEMAS:
         process = main_schema_process(dst_conn, dst_conn, logger)
         if logger.error_count_messages != 0:
@@ -79,12 +80,11 @@ def cli_depublish():
                 schemas=process["schemas"],
                 force=force,
             )
-            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
             questionary.print("Script de dépublication terminé")
         else:
             questionary.print("Script de dépublication annulé")
-
     if object_type == TABLES:
         force = True
         process = main_table_process(dst_conn, dst_conn, logger)
@@ -118,7 +118,7 @@ def cli_depublish():
                 force=force,
             )
 
-            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
             questionary.print("Script de dépublication terminé")
         else:
@@ -157,7 +157,7 @@ def cli_depublish():
                 force=force,
             )
 
-            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
             questionary.print("Script de dépublication terminé")
         else:
@@ -198,7 +198,7 @@ def cli_depublish():
                 force=force,
             )
 
-            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
             questionary.print("Script de dépublication terminé")
         else:
@@ -323,7 +323,7 @@ def cli_publish(no_acl_no_owner):
                 force=force,
             )
             logger.success = True
-            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
             questionary.print("Script de publication terminé")
         else:
@@ -368,7 +368,7 @@ def cli_publish(no_acl_no_owner):
         )
         if confirm:
             logger.success = True
-            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
             questionary.print("Script de publication terminé")
         else:
@@ -412,7 +412,7 @@ def cli_publish(no_acl_no_owner):
                 force=force,
             )
             logger.success = True
-            questionary.print("cmd_cli.py {}".format(logger.build_cmd_command()))
+            questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
             questionary.print("Script de publication terminé")
         else:
@@ -576,7 +576,6 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
         choices=SchemaQuerier.get_schemas(conn_src),
         validate=choice_checker,
     ).ask()
-
     logger.object_names = schemas
     # get src dependant
     src_dependant = SchemaQuerier.get_dependant_schemas_objects(conn_src, schemas)
@@ -624,10 +623,7 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
         }  # TODO make it more amorvan approved
     else:
         schemas_dependencies = can_publish_to_dst_server(
-            conn_dst,
-            src_dependant,
-            schemas=logger.object_names,
-            tables=tables_to_be_published,
+            conn_dst, src_dependant, schemas=schemas, tables=tables_to_be_published
         )
     if not schemas_dependencies["can_publish"]:
         for schema_dep_error in (
