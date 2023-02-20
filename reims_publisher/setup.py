@@ -33,7 +33,7 @@ setup(
     install_requires=requirements,
     long_description=readme + "\n\n" + history,
     include_package_data=True,
-    package_data={'reims_publisher': ['*.ini']},
+    package_data={"reims_publisher": ["*.ini"]},
     keywords="reims_publisher",
     name="reims_publisher",
     packages=find_packages(include=["reims_publisher", "reims_publisher.*"]),

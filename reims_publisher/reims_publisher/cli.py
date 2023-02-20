@@ -381,6 +381,11 @@ def cli_publish(no_acl_no_owner):
                 "{} Erreurs rencontrées".format(logger.error_count_messages),
                 style="bold italic fg:red",
             )
+            # TODO HERE
+            # DROP CASCADE
+            # DROP Dependences des schemas
+            # de pas afficher les schémas ne contenant pas les vues si c'est vues selectionner
+            # idem pour les tables
             questionary.print(",".join(logger.error_messages))
 
         force = True
@@ -579,6 +584,7 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
     logger.object_names = schemas
     # get src dependant
     src_dependant = SchemaQuerier.get_dependant_schemas_objects(conn_src, schemas)
+
     questionary.print("Vérifications des dépendances...")
     tables_to_be_published = list(
         set(
@@ -616,7 +622,11 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
             ]
         )
     )
-    if src_dependant["views"] is None and src_dependant["constraints"] is None:
+    if (
+        src_dependant["views"] is None
+        and src_dependant["constraints"] is None
+        and src_dependant["dependencies"] is None
+    ):
         questionary.print("Aucune dépendances")
         schemas_dependencies = {
             "can_publish": True

@@ -49,16 +49,19 @@ def can_publish_to_dst_server(
     get_unique_source_tables = list(
         set(
             val["dependent_schema_table"]
-            for val in src_dependencies["constraints"] + src_dependencies["views"]
+            for val in src_dependencies["constraints"]
+            + src_dependencies["views"]
+            + src_dependencies["dependencies"]
         )
     )
     tables_not_specified = [
         table for table in get_unique_source_tables if table not in tables
     ]
-
     for table in tables_not_specified:
         if not SchemaQuerier.schema_table_exists(database_connection, table):
             schema_errors.insert(0, no_table_message(table))
+        else:
+            schema_errors.insert(0, has_reference_message(table))
 
     if len(views) != 0:
         get_unique_source_views = list(
@@ -190,4 +193,11 @@ def no_mat_view_message(mat_view_name):
 def schema_dependence_message(dep_tuple):
     return "La {} {} se trouve dans le schema en cours de dépublication et sera supprimée".format(
         dep_tuple[0], dep_tuple[1]
+    )
+
+
+def has_reference_message(table_name):
+    return (
+        "La table {} utilise un objet du schéma courant, "
+        "cette référence ou cette table sera supprimée\n ".format(table_name)
     )
