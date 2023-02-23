@@ -123,13 +123,13 @@ class PublisherLogger:
             self.publish_type, self.src_db, self.dst_db
         )
         if self.object_type == "schemas":
-            cmd_command += "-schemas={}".format(self.object_names)
+            cmd_command += "-s={}".format(self.object_names)
         elif self.object_type == "tables":
-            cmd_command += "-tables={}".format(self.object_names)
+            cmd_command += "-s={}".format(self.object_names)
         elif self.object_type == "views":
-            cmd_command += "-views={}".format(self.object_names)
+            cmd_command += "-v={}".format(self.object_names)
         elif self.object_type == "materialized_views":
-            cmd_command += "-materialized_views={}".format(self.object_names)
+            cmd_command += "-mv={}".format(self.object_names)
         else:
             raise Exception("object_type is not valid: {}".format(self.object_type))
         return cmd_command
