@@ -252,6 +252,13 @@ def cli_publish(no_acl_no_owner):
             force = questionary.confirm(
                 "Souhaitez-vous ignorer les erreurs et essayer de publier ?"
             ).ask()
+        if len(process["schema_warnings"]) > 0:
+            questionary.print(
+                ",".join(process["schema_warnings"]), style="bold italic fg:yellow"
+            )
+            force = questionary.confirm(
+                "Souhaitez-vous ignorer les warnings et essayer de publier ?"
+            ).ask()
         if not force:
             questionary.print(no_change_message())
             return
@@ -558,6 +565,7 @@ def main_mat_view_process(conn_src, conn_dst, logger):
     if not tables_dependencies["can_publish"]:
         logger.error_messages.append(tables_dependencies["table_view_errors"])
         logger.error_messages.append(tables_dependencies["schema_errors"])
+        logger.error_messages.append(tables_dependencies["schema_errors"])
 
         return {
             "success": False,
@@ -651,6 +659,7 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
         "schema_dependencies_depublish": schemas_dependencies[
             "schema_dependencies_depublish"
         ],
+        "schema_warnings": schemas_dependencies["schema_warnings"],
         "materialized_views": materialized_views_to_be_published,
         "logger": logger,
     }

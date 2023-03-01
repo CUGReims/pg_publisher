@@ -21,6 +21,7 @@ def can_publish_to_dst_server(
     :return: {can_publish : Bool : schema_errors: [publish_type], table_view_errors: []}
     """
     schema_errors = []
+    schema_warnings = []
     schema_dependencies_depublish = []
     table_view_errors = []
     table_view_warnings = []
@@ -61,7 +62,7 @@ def can_publish_to_dst_server(
         if not SchemaQuerier.schema_table_exists(database_connection, table):
             schema_errors.insert(0, no_table_message(table))
         else:
-            schema_errors.insert(0, has_reference_message(table))
+            schema_warnings.insert(0, has_reference_message(schemas, table))
 
     if len(views) != 0:
         get_unique_source_views = list(
@@ -150,13 +151,14 @@ def can_publish_to_dst_server(
         if len(schema_errors) == 0 and len(table_view_errors) == 0
         else False,
         "schema_errors": list(set(schema_errors)),
+        "schema_warnings": list(set(schema_warnings)),
         "schema_dependencies_depublish": schema_dependencies_depublish,
         "table_view_errors": list(set(table_view_errors)),
         "table_view_warnings": list(set(table_view_warnings)),
     }
 
 
-def no_schema_message(schema_name):
+def no_schema_message(schema_name: str) -> str:
     return (
         "Le schema {} ne se trouve pas "
         "sur le serveur de destination, merci de le créer/publier \n ".format(
@@ -165,7 +167,7 @@ def no_schema_message(schema_name):
     )
 
 
-def no_table_message(table_name):
+def no_table_message(table_name: str) -> str:
     return (
         "La table {} ne se trouve pas "
         "sur le serveur de destination, merci de le créer/publier \n ".format(
@@ -174,14 +176,14 @@ def no_table_message(table_name):
     )
 
 
-def no_view_message(view_name):
+def no_view_message(view_name: str) -> str:
     return (
         "La vue {} ne se trouve pas "
         "sur le serveur de destination, merci de le créer/publier \n ".format(view_name)
     )
 
 
-def no_mat_view_message(mat_view_name):
+def no_mat_view_message(mat_view_name: str) -> str:
     return (
         "La vue matérialisée {} ne se trouve pas "
         "sur le serveur de destination, merci de le créer/publier \n ".format(
@@ -190,14 +192,13 @@ def no_mat_view_message(mat_view_name):
     )
 
 
-def schema_dependence_message(dep_tuple):
+def schema_dependence_message(dep_tuple: []) -> str:
     return "La {} {} se trouve dans le schema en cours de dépublication et sera supprimée".format(
         dep_tuple[0], dep_tuple[1]
     )
 
 
-def has_reference_message(table_name):
-    return (
-        "La table {} utilise un objet du schéma courant, "
-        "cette référence ou cette table sera supprimée\n ".format(table_name)
+def has_reference_message(schema_names: [str], table_name: str) -> str:
+    return "La table '{}' utilise un objet du/des schéma(s) en cours de publication: {}, ".format(
+        table_name, ",".join(schema_names)
     )
