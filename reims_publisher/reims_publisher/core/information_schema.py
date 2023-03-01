@@ -5,6 +5,7 @@ from reims_publisher.core.sql_queries import (
     get_tables_view_dependencies,
     get_tables_fk_dependencies,
     get_schemas_fk_dependencies,
+    get_schemas_fk_constraints,
 )
 import configparser
 from pkg_resources import resource_filename
@@ -132,6 +133,8 @@ class SchemaQuerier:
         with database_connection.cursor() as cursor:
             cursor.execute(get_schemas_dependencies(schemas))
             dependencies_view = cursor.fetchall()
+            cursor.execute(get_schemas_fk_constraints(schemas))
+            constraints_fk = cursor.fetchall()
             cursor.execute(get_schemas_fk_dependencies(schemas))
             dependencies_fk = cursor.fetchall()
         # transforms (key, value, key1, value1) to {key: value, key1, value1}
@@ -148,6 +151,15 @@ class SchemaQuerier:
                 # }
             ],
             "constraints": [
+                dict(zip(constraint[::2], constraint[1::2]))
+                for constraint in constraints_fk
+                # {'source_schema': schemaname,
+                # 'dependent_schema_table': schema_table_name,
+                # 'source_schema_table': source_schema_table
+                # 'type_of_constraint': referencing_column::varchar,
+                # 'dependent_schema' : schema_name
+            ],
+            "dependencies": [
                 dict(zip(dependency[::2], dependency[1::2]))
                 for dependency in dependencies_fk
                 # {'source_schema': schemaname,

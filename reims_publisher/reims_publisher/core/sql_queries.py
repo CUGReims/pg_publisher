@@ -25,7 +25,7 @@ def get_schemas_dependencies(schemas: [str]) -> [dict]:
     )
 
 
-def get_schemas_fk_dependencies(schemas: [str]) -> [dict]:
+def get_schemas_fk_constraints(schemas: [str]) -> [dict]:
     joined_schemas = ", ".join(f"'{schema}'" for schema in schemas)
     return """
     WITH cte as (
@@ -44,6 +44,29 @@ def get_schemas_fk_dependencies(schemas: [str]) -> [dict]:
     referencing_column::varchar, 'dependent_schema', split_part(schema_table::varchar, '.', 1)
     FROM cte
     WHERE cte.constraint_type = 'f' AND cte.schemaname::varchar in ({})""".format(
+        joined_schemas
+    )
+
+
+def get_schemas_fk_dependencies(schemas: [str]) -> [dict]:
+    joined_schemas = ", ".join(f"'{schema}'" for schema in schemas)
+    return """
+    WITH cte as (
+      SELECT la.attrelid::regclass AS source_schema_table,
+        la.attname AS referencing_column,
+        c.confrelid::regclass as schema_table,
+        c.contype as constraint_type,
+        c.connamespace::regnamespace as schemaname
+      FROM pg_constraint AS c
+      JOIN pg_index AS i ON i.indexrelid = c.conindid
+      JOIN pg_attribute AS la ON la.attrelid = c.conrelid AND la.attnum = c.conkey[1]
+      JOIN pg_attribute AS ra ON ra.attrelid = c.confrelid AND ra.attnum = c.confkey[1]
+      )
+    SELECT 'source_schema', schemaname::varchar, 'source_schema_table', schema_table::varchar,
+    'dependent_schema_table', source_schema_table::varchar, 'type_of_constraint',
+    referencing_column::varchar, 'dependent_schema', split_part(schema_table::varchar, '.', 1)
+    FROM cte
+    WHERE cte.constraint_type = 'f' AND split_part(schema_table::varchar, '.', 1) in ({})""".format(
         joined_schemas
     )
 
