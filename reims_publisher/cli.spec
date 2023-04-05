@@ -1,8 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import shutil
+shutil.copyfile('reims_publisher/conf.ini', '{0}/conf.ini'.format(DISTPATH))
 
 block_cipher = None
 
+added_files = [
+    ( 'reims_publisher/conf.ini', '.' )]
 
 a = Analysis(
     ['reims_publisher/cli.py'],
