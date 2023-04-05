@@ -41,7 +41,8 @@ make tests
 ## Creating a binary for both Windows and Linux
 
 ```shell
+cd reims_publisher
 pyinstaller --clean cli.spec
-cd dist
-./cli.py
+chmod +x dist/cli
+./dist/cli
 ```
