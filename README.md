@@ -38,10 +38,27 @@ make tests
 ```
 
 
-## Creating a binary for both Windows and Linux
+## Creation of standalone executable
+
+### For Linux
 
 ```shell
-pyinstaller --clean cli.spec
-cd dist
-./cli.py
+docker-compose run --rm --user `id -u`:`id -g` tester sh -c "cd /src && pyinstaller --clean /src/cli.spec"
+
+chmod +x reims_publisher/dist/cli
+
+./reims_publisher/dist/cli
+```
+
+### For Windows
+
+Comment psycopg2-binary in requirements.txt, then:
+
+```
+pip install pipwin
+pipwin install psycopg2
+
+cd reims_publisher
+pip install -e .
+pyinstaller --clean /src/cli.spe
 ```

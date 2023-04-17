@@ -40,6 +40,8 @@ tests: ## Run automated tests
 clean: ## Stop composition, remove containers and images
 	docker-compose down -v -t1 --remove-orphans
 	docker rmi camptocamp/reims_publisher:latest || true
+	rm -rf reims_publisher build
+	rm -rf reims_publisher dist
 
 cli: ## Starts the cli
 	docker-compose exec --user `id -u`:`id -g` tester python /app/reims_publisher/cli.py
