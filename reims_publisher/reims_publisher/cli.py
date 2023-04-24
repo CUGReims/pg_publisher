@@ -696,16 +696,18 @@ def no_change_message():
 
 @click.command()
 def main():
-    publish_ = questionary.select(
+    response = questionary.select(
         "Que souhaitez vous faire ?",
         choices=["Publier", "Publier avec les droits", "Dépuplier"],
     ).ask()
-    if publish_ == "Publier":
+    if response == "Publier":
         cli_publish(True)
-    elif publish_ == "Publier avec les droits":
+    elif response == "Publier avec les droits":
         cli_publish(False)
-    else:
+    elif response == "Dépuplier":
         cli_depublish()
+    elif response is None:
+        return
 
 
 if __name__ == "__main__":
