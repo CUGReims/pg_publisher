@@ -1,5 +1,4 @@
-import os.path
-
+from reims_publisher.config import get_config
 from reims_publisher.core.sql_queries import (
     get_schemas_dependencies,
     get_tables_view_dependencies,
@@ -7,14 +6,8 @@ from reims_publisher.core.sql_queries import (
     get_schemas_fk_dependencies,
     get_schemas_fk_constraints,
 )
-import configparser
-from pkg_resources import resource_filename
 
-config = configparser.ConfigParser()
-if os.path.exists("conf.ini"):
-    config.read("conf.ini")
-else:
-    config.read(resource_filename("reims_publisher", "conf.ini"))
+config = get_config()
 
 
 class SchemaQuerier:
