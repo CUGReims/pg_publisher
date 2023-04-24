@@ -1,5 +1,6 @@
-import os.path
+from typing import List
 
+from reims_publisher.config import get_config
 from reims_publisher.core.sql_queries import (
     get_schemas_dependencies,
     get_tables_view_dependencies,
@@ -7,19 +8,13 @@ from reims_publisher.core.sql_queries import (
     get_schemas_fk_dependencies,
     get_schemas_fk_constraints,
 )
-import configparser
-from pkg_resources import resource_filename
 
-config = configparser.ConfigParser()
-if os.path.exists("conf.ini"):
-    config.read("conf.ini")
-else:
-    config.read(resource_filename("reims_publisher", "conf.ini"))
+config = get_config()
 
 
 class SchemaQuerier:
     @staticmethod
-    def get_schemas(database_connection: object) -> [str]:
+    def get_schemas(database_connection: object) -> List[str]:
         """
         :param database_connection:
         :return: a list of existing schemas from the database
@@ -38,7 +33,7 @@ class SchemaQuerier:
             return schemas
 
     @staticmethod
-    def get_schemas_with_views(database_connection: object) -> [str]:
+    def get_schemas_with_views(database_connection: object) -> List[str]:
         s = config.get("DEFAULT", "ignoredSchemas")
         with database_connection.cursor() as cursor:
             cursor.execute(
@@ -52,7 +47,9 @@ class SchemaQuerier:
             return schemas_with_views
 
     @staticmethod
-    def get_tables_from_schema(database_connection: object, schema_name: str) -> [str]:
+    def get_tables_from_schema(
+        database_connection: object, schema_name: str
+    ) -> List[str]:
         """
         :param database_connection:
         :param schema_name:
@@ -74,7 +71,9 @@ class SchemaQuerier:
             return tables
 
     @staticmethod
-    def get_views_from_schema(database_connection: object, schema_name: str) -> [str]:
+    def get_views_from_schema(
+        database_connection: object, schema_name: str
+    ) -> List[str]:
         with database_connection.cursor() as cursor:
             cursor.execute(
                 "SELECT DISTINCT (table_name) FROM"
@@ -92,7 +91,7 @@ class SchemaQuerier:
     @staticmethod
     def get_materialized_views_from_schema(
         database_connection: object, schema_name: str
-    ) -> [str]:
+    ) -> List[str]:
         with database_connection.cursor() as cursor:
             cursor.execute(
                 "SELECT matviewname FROM"
@@ -110,7 +109,7 @@ class SchemaQuerier:
         return mat_views
 
     @staticmethod
-    def get_schemas_with_matviews(database_connection: object) -> [str]:
+    def get_schemas_with_matviews(database_connection: object) -> List[str]:
         s = config.get("DEFAULT", "ignoredSchemas")
         with database_connection.cursor() as cursor:
             cursor.execute(
@@ -124,7 +123,9 @@ class SchemaQuerier:
             return schemas_with_views
 
     @staticmethod
-    def get_dependant_schemas_objects(database_connection: object, schemas) -> [dict]:
+    def get_dependant_schemas_objects(
+        database_connection: object, schemas
+    ) -> List[dict]:
         """
         :param database_connection:
         :param schemas:
@@ -185,7 +186,7 @@ class SchemaQuerier:
             return cursor.fetchall()
 
     @staticmethod
-    def get_dependant_tables_objects(database_connection: object, tables) -> [dict]:
+    def get_dependant_tables_objects(database_connection: object, tables) -> List[dict]:
         with database_connection.cursor() as cursor:
             cursor.execute(get_tables_view_dependencies(tables))
             dependencies_views = cursor.fetchall()
@@ -203,7 +204,7 @@ class SchemaQuerier:
         }
 
     @staticmethod
-    def schema_exists(database_connection: object, schema_name: str) -> [bool]:
+    def schema_exists(database_connection: object, schema_name: str) -> bool:
         """
         :param schema_name
         :param database_connection:
@@ -220,7 +221,7 @@ class SchemaQuerier:
     @staticmethod
     def schema_table_exists(
         database_connection: object, schema_table_name: str
-    ) -> [bool]:
+    ) -> bool:
         """
         :param schema_table_name schema.table
         :param database_connection:
@@ -236,9 +237,7 @@ class SchemaQuerier:
             return cursor.fetchone()[0]
 
     @staticmethod
-    def schema_view_exists(
-        database_connection: object, schema_table_name: str
-    ) -> [bool]:
+    def schema_view_exists(database_connection: object, schema_table_name: str) -> bool:
         """
         :param schema_table_name: name of the view schema.viewname
         :param database_connection: connection instance of the database

@@ -1,14 +1,10 @@
 import logging
 import os
 from datetime import datetime
-import configparser
-from pkg_resources import resource_filename
 
-config = configparser.ConfigParser()
-if os.path.exists("conf.ini"):
-    config.read("conf.ini")
-else:
-    config.read(resource_filename("reims_publisher", "conf.ini"))
+from reims_publisher.config import get_config
+
+config = get_config()
 
 
 class PublisherLogger:
