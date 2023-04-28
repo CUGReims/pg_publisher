@@ -6,6 +6,7 @@ from reims_publisher.core.database_manager import (
     get_services,
     get_conn_string_from_service_name,
 )
+from reims_publisher.check_cli_dependencies import run_check_dependencies
 from reims_publisher.core.information_schema import SchemaQuerier
 from reims_publisher.core.publish_checker import can_publish_to_dst_server
 from reims_publisher.core.publish import publish
@@ -696,6 +697,7 @@ def no_change_message():
 
 @click.command()
 def main():
+    run_check_dependencies()
     response = questionary.select(
         "Que souhaitez vous faire ?",
         choices=["Publier", "Publier avec les droits", "Dépuplier"],
