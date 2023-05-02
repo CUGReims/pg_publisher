@@ -56,7 +56,7 @@ def cli_depublish():
                 "{} Erreurs rencontrées".format(logger.error_count_messages),
                 style="bold italic fg:red",
             )
-            questionary.print(",".join(logger.error_messages))
+            questionary.print(",\n".join(logger.error_messages))
         force = True
         if not process["success"] and process["tables"] is not None:
             force = questionary.confirm(
@@ -95,7 +95,7 @@ def cli_depublish():
                 "{} Erreurs rencontrées".format(logger.error_count_messages),
                 style="bold italic fg:red",
             )
-            questionary.print(",".join(logger.error_messages))
+            questionary.print(",\n".join(logger.error_messages))
         if not process["tables"]:
             questionary.print(no_change_message())
         # check for warnings
@@ -133,7 +133,7 @@ def cli_depublish():
                 "{} Erreurs rencontrées".format(logger.error_count_messages),
                 style="bold italic fg:red",
             )
-            questionary.print(",".join(logger.error_messages))
+            questionary.print(",\n".join(logger.error_messages))
         if not process["views"]:
             questionary.print(no_change_message())
             return
@@ -173,7 +173,7 @@ def cli_depublish():
                 "{} Erreurs rencontrées".format(logger.error_count_messages),
                 style="bold italic fg:red",
             )
-            questionary.print(",".join(logger.error_messages))
+            questionary.print(",\n".join(logger.error_messages))
         if not process["mat_views"]:
             questionary.print(no_change_message())
             return
@@ -247,7 +247,7 @@ def cli_publish(no_acl_no_owner):
                 "{} Erreurs rencontrées".format(logger.error_count_messages),
                 style="bold italic fg:red",
             )
-        questionary.print(",".join(logger.error_messages))
+        questionary.print(",\n".join(logger.error_messages))
         force = True
         if not process["success"]:
             force = questionary.confirm(
@@ -255,7 +255,7 @@ def cli_publish(no_acl_no_owner):
             ).ask()
         if len(process["schema_warnings"]) > 0:
             questionary.print(
-                ",".join(process["schema_warnings"]), style="bold italic fg:yellow"
+                ",\n".join(process["schema_warnings"]), style="bold italic fg:yellow"
             )
             force = questionary.confirm(
                 "Souhaitez-vous ignorer les warnings et essayer de publier ?"
@@ -300,7 +300,7 @@ def cli_publish(no_acl_no_owner):
                 "{} Erreurs rencontrées".format(logger.error_count_messages),
                 style="bold italic fg:red",
             )
-            questionary.print(",".join(logger.error_messages))
+            questionary.print(",\n".join(logger.error_messages))
 
         force = True
         # check for warnings
@@ -345,7 +345,7 @@ def cli_publish(no_acl_no_owner):
                 "{} Erreurs rencontrées".format(logger.error_count_messages),
                 style="bold italic fg:red",
             )
-            questionary.print(",".join(logger.error_messages))
+            questionary.print(",\n".join(logger.error_messages))
 
         force = True
         # check for warnings
@@ -394,7 +394,7 @@ def cli_publish(no_acl_no_owner):
             # DROP Dependences des schemas
             # de pas afficher les schémas ne contenant pas les vues si c'est vues selectionner
             # idem pour les tables
-            questionary.print(",".join(logger.error_messages))
+            questionary.print(",\n".join(logger.error_messages))
 
         force = True
         # check for warnings
