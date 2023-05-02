@@ -8,7 +8,12 @@ another.
 
 ### Prerequisites
 
-Requires docker and docker-compose
+To use in development:
+- Requires docker and docker-compose
+
+To use the standalone executable:
+- you will need to have psql installed on your machine.
+- Make sure that the `psql` commands are available in your `PATH`.
 
 ### Installation
 
