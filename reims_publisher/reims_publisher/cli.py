@@ -2,6 +2,7 @@
 import sys
 import click
 import questionary
+import logging
 from reims_publisher.core.database_manager import (
     get_services,
     get_conn_string_from_service_name,
@@ -13,6 +14,8 @@ from reims_publisher.core.publish import publish
 from reims_publisher.core.depublish import depublish
 from reims_publisher.core.logger import PublisherLogger
 from psycopg2 import connect
+
+LOG = logging.getLogger(__name__)
 
 SCHEMAS = "schemas"
 TABLES = "tables"
@@ -713,4 +716,11 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())  # pragma: no cover
+    try:
+        sys.exit(main())  # pragma: no cover
+    except Exception as e:
+        LOG.exception(
+            "Une erreur inattendue s'est produite : %s", str(e), exc_info=True
+        )
+        questionary.text("Appuyez sur la touche Entrée pour sortir.").ask()
+        sys.exit(1)
