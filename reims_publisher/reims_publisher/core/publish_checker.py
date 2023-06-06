@@ -50,9 +50,7 @@ def can_publish_to_dst_server(
     get_unique_source_tables = list(
         set(
             val["dependent_schema_table"]
-            for val in src_dependencies["constraints"]
-            + src_dependencies["views"]
-            + src_dependencies["dependencies"]
+            for val in src_dependencies["constraints"] + src_dependencies["views"]
         )
     )
     tables_not_specified = [
