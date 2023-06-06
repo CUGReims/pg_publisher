@@ -1,5 +1,10 @@
+import logging
 import subprocess
 from typing import List, Optional
+
+from reims_publisher.core.logger import LOG_FILE_PATH
+
+LOG = logging.getLogger(__name__)
 
 
 class PsqlError(Exception):
@@ -21,7 +26,6 @@ class PsqlOperationalError(PsqlError):
 def publish(
     src_conn_string: str,
     dst_conn_string: str,
-    log_file_path: str,
     schemas: Optional[List[str]] = None,
     tables: Optional[List[str]] = None,
     views: Optional[List[str]] = None,
@@ -29,7 +33,7 @@ def publish(
     no_acl_no_owner: Optional[bool] = False,
     force: Optional[bool] = True,
 ):
-    with open(log_file_path, "a") as f:
+    with open(LOG_FILE_PATH, "a") as f:
         receiver = subprocess.Popen(
             ["psql", "--single-transaction", dst_conn_string],
             stdin=subprocess.PIPE,
@@ -40,7 +44,10 @@ def publish(
 
         receiver.stdin.write("\\set ON_ERROR_STOP on\n")
         receiver.stdin.flush()
-        dump_command = ["pg_dump", "-Ox"] if no_acl_no_owner else ["pg_dump"]
+        dump_command = ["pg_dump"]
+        if no_acl_no_owner:
+            dump_command.append("-Ox")
+
         if schemas:
             for schema in schemas:
                 sql_query = (
@@ -50,10 +57,11 @@ def publish(
                 )
                 receiver.stdin.write(sql_query)
                 receiver.stdin.flush()
+            dump_command += [arg for schema in schemas for arg in ["-n", schema]]
+            dump_command += [src_conn_string]
+            LOG.info("Running dump command: %s", dump_command)
             emitter = subprocess.Popen(
-                dump_command
-                + [arg for schema in schemas for arg in ["-n", schema]]
-                + [src_conn_string],
+                dump_command,
                 stdout=receiver.stdin,
                 stderr=f,
             )
@@ -68,10 +76,11 @@ def publish(
                 )
                 receiver.stdin.write(sql_query)
                 receiver.stdin.flush()
+            dump_command += [arg for table in tables for arg in ["-t", table]]
+            dump_command += [src_conn_string]
+            LOG.info("Running dump command: %s", dump_command)
             emitter = subprocess.Popen(
-                dump_command
-                + [arg for table in tables for arg in ["-t", table]]
-                + [src_conn_string],
+                dump_command,
                 stdout=receiver.stdin,
                 stderr=f,
             )
@@ -86,10 +95,11 @@ def publish(
                 )
                 receiver.stdin.write(sql_query)
                 receiver.stdin.flush()
+            dump_command += [arg for view in views for arg in ["-t", view]]
+            dump_command += [src_conn_string]
+            LOG.info("Running dump command: %s", dump_command)
             emitter = subprocess.Popen(
-                dump_command
-                + [arg for view in views for arg in ["-t", view]]
-                + [src_conn_string],
+                dump_command,
                 stdout=receiver.stdin,
                 stderr=f,
             )
@@ -104,10 +114,13 @@ def publish(
                 )
                 receiver.stdin.write(sql_query)
                 receiver.stdin.flush()
+            dump_command += [
+                arg for mat_view in materialized_views for arg in ["-t", mat_view]
+            ]
+            dump_command += [src_conn_string]
+            LOG.info("Running dump command: %s", dump_command)
             emitter = subprocess.Popen(
-                dump_command
-                + [arg for mat_view in materialized_views for arg in ["-t", mat_view]]
-                + [src_conn_string],
+                dump_command,
                 stdout=receiver.stdin,
                 stderr=f,
             )
@@ -117,7 +130,7 @@ def publish(
 
     error_message = ""
     error_found = False
-    with open(log_file_path, "r") as f:
+    with open(LOG_FILE_PATH, "r") as f:
         for line in f:
             if "ERROR:" in line:
                 error_found = True
@@ -131,15 +144,8 @@ def publish(
     if returncode == 0:
         return
     if returncode == 1:
-        raise PsqlFatalError(
-            f"Erreur fatale: {error_message}\nVoir le fichier {log_file_path} pour plus de détails."
-        )
+        raise PsqlFatalError(f"Erreur fatale: {error_message}")
     if returncode == 2:
-        raise PsqlConnectionLostError(
-            f"Connection lost: {error_message}\nVoir le fichier {log_file_path} pour plus de détails."
-        )
+        raise PsqlConnectionLostError(f"Connection lost: {error_message}")
     if returncode == 3:
-        raise PsqlOperationalError(
-            f"La restauration a échouée: {error_message}\n"
-            f"Voir le fichier {log_file_path} pour plus de détails."
-        )
+        raise PsqlOperationalError(f"La restauration a échouée: {error_message}")

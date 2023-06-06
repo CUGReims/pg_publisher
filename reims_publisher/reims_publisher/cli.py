@@ -12,7 +12,7 @@ from reims_publisher.core.information_schema import SchemaQuerier
 from reims_publisher.core.publish_checker import can_publish_to_dst_server
 from reims_publisher.core.publish import publish
 from reims_publisher.core.depublish import depublish
-from reims_publisher.core.logger import PublisherLogger
+from reims_publisher.core.logger import LOG_FILE_PATH, PublisherLogger
 from psycopg2 import connect
 
 LOG = logging.getLogger(__name__)
@@ -80,7 +80,6 @@ def cli_depublish():
         if confirm:
             depublish(
                 dst_conn_string,
-                logger.path_to_log_file,
                 schemas=process["schemas"],
                 force=force,
             )
@@ -117,7 +116,6 @@ def cli_depublish():
         if confirm:
             depublish(
                 dst_conn_string,
-                logger.path_to_log_file,
                 tables=process["tables"],
                 force=force,
             )
@@ -156,7 +154,6 @@ def cli_depublish():
         if confirm:
             depublish(
                 dst_conn_string,
-                logger.path_to_log_file,
                 views=process["views"],
                 force=force,
             )
@@ -197,7 +194,6 @@ def cli_depublish():
         if confirm:
             depublish(
                 dst_conn_string,
-                logger.path_to_log_file,
                 materialized_views=process["mat_views"],
                 force=force,
             )
@@ -281,7 +277,6 @@ def cli_publish(no_acl_no_owner):
             publish(
                 src_conn_string,
                 dst_conn_string,
-                logger.path_to_log_file,
                 schemas=process["schemas"],
                 no_acl_no_owner=no_acl_no_owner,
                 force=force,
@@ -328,7 +323,6 @@ def cli_publish(no_acl_no_owner):
             publish(
                 src_conn_string,
                 dst_conn_string,
-                logger.path_to_log_file,
                 tables=process["tables"],
                 no_acl_no_owner=no_acl_no_owner,
                 force=force,
@@ -372,7 +366,6 @@ def cli_publish(no_acl_no_owner):
         publish(
             src_conn_string,
             dst_conn_string,
-            logger.path_to_log_file,
             views=process["views"],
             force=force,
             no_acl_no_owner=no_acl_no_owner,
@@ -422,7 +415,6 @@ def cli_publish(no_acl_no_owner):
             publish(
                 src_conn_string,
                 dst_conn_string,
-                logger.path_to_log_file,
                 materialized_views=process["mat_views"],
                 no_acl_no_owner=no_acl_no_owner,
                 force=force,
@@ -699,8 +691,20 @@ def no_change_message():
 
 
 @click.command()
-def main():
+@click.option(
+    "-v",
+    "--verbose",
+    flag_value=True,
+    default=False,
+    help="Mode verbeux, affiche les journaux sur la sortie standard.",
+)
+def main(verbose):
+    logging.basicConfig(level=logging.INFO, filename=LOG_FILE_PATH)
+    if verbose:
+        logging.getLogger().addHandler(logging.StreamHandler())
+
     run_check_dependencies()
+
     response = questionary.select(
         "Que souhaitez vous faire ?",
         choices=["Publier", "Publier avec les droits", "Dépuplier"],
@@ -719,8 +723,10 @@ if __name__ == "__main__":
     try:
         sys.exit(main())  # pragma: no cover
     except Exception as e:
-        LOG.exception(
-            "Une erreur inattendue s'est produite : %s", str(e), exc_info=True
-        )
+        LOG.exception(str(e), exc_info=True)
+
+        questionary.print(f"{str(e)}")
+        questionary.print(f"Voir le fichier {LOG_FILE_PATH} pour plus de détails.")
+
         questionary.text("Appuyez sur la touche Entrée pour sortir.").ask()
         sys.exit(1)

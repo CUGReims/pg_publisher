@@ -1,4 +1,3 @@
-import logging
 import os
 from datetime import datetime
 
@@ -6,10 +5,18 @@ from reims_publisher.config import get_config
 
 config = get_config()
 
+LOG_FILE_PATH = os.path.abspath(
+    os.path.join(
+        config.get("DEFAULT", "logDir"),
+        "log{date_time}.log".format(
+            date_time=datetime.now().strftime("%Y-%m-%d-%H-%M")
+        ),
+    )
+)
+
 
 class PublisherLogger:
     def __init__(self, conn):
-        self.path_to_log_file = None  # need
         self._src_db = None  # need
         self._dst_db = None  # need
         self.publish_type = None  # need
@@ -18,17 +25,9 @@ class PublisherLogger:
         self._object_type = None
         self._error_messages = []
         self.conn = conn
-        self.create_log_file()
         self.user = os.environ.get("USER", os.environ.get("USERNAME"))  # need
         self.create_logging_schema()  # need
         self.create_logging_table()  # need
-
-    def create_log_file(self):
-        date_time = datetime.now().strftime("%Y-%m-%d-%H-%M")
-        self.path_to_log_file = "{dir}log{date_time}.log".format(
-            dir=config.get("DEFAULT", "logDir"), date_time=date_time
-        )
-        logging.basicConfig(filename=self.path_to_log_file, level=logging.INFO)
 
     def create_logging_schema(self):
         with self.conn:
@@ -151,7 +150,7 @@ class PublisherLogger:
             object_type=self.object_type,
             object_names=self.object_names,
             success=self.success,
-            path_to_log_file=self.path_to_log_file,
+            path_to_log_file=LOG_FILE_PATH,
             error_messages=",".join(self.error_messages),
             command_pour_publish_cron=self.build_cmd_command(),
             publish_type=self.publish_type,

@@ -5,7 +5,7 @@ import pytest
 def test_publish_schema_success(dst_conn_string, dst_table, dst_conn):
     from reims_publisher.core.depublish import depublish
 
-    depublish(dst_conn_string, "/tmp/nicelog.log", schemas=["schema"])
+    depublish(dst_conn_string, schemas=["schema"])
 
     with dst_conn:
         with dst_conn.cursor() as cursor:
@@ -22,11 +22,11 @@ def test_publish_schema_success(dst_conn_string, dst_table, dst_conn):
 @pytest.mark.usefixtures("dst_schema")
 @pytest.mark.usefixtures("dst_table")
 def test_depublish_table_success(
-    dst_conn_string, dst_table, dst_schema, dst_conn, log_file
+    dst_conn_string, dst_table, dst_schema, dst_conn
 ):
     from reims_publisher.core.depublish import depublish
 
-    depublish(dst_conn_string, log_file, tables=["schema.table"])
+    depublish(dst_conn_string, tables=["schema.table"])
 
     with dst_conn:
         with dst_conn.cursor() as cursor:
