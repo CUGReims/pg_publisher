@@ -7,7 +7,7 @@ import pytest
 def test_publish_schema_success(src_conn_string, dst_conn_string, src_table, dst_conn):
     from reims_publisher.core.publish import publish
 
-    publish(src_conn_string, dst_conn_string, "/tmp/nicelog.log", schemas=["schema"])
+    publish(src_conn_string, dst_conn_string, schemas=["schema"])
 
     with dst_conn:
         with dst_conn.cursor() as cursor:
@@ -37,7 +37,7 @@ def test_publish_schema_not_owned(
     from reims_publisher.core.publish import publish, PsqlOperationalError
 
     with pytest.raises(PsqlOperationalError) as excinfo:
-        publish(src_conn_string, some_user, "/tmp/nicelog.log", schemas=["schema"])
+        publish(src_conn_string, some_user, schemas=["schema"])
 
     assert "must be owner of schema schema" in str(excinfo.value)
 
@@ -45,11 +45,11 @@ def test_publish_schema_not_owned(
 @pytest.mark.usefixtures("dst_schema")
 @pytest.mark.usefixtures("src_table")
 def test_publish_table_success(
-    src_conn_string, dst_conn_string, src_table, dst_schema, dst_conn, log_file
+    src_conn_string, dst_conn_string, src_table, dst_schema, dst_conn
 ):
     from reims_publisher.core.publish import publish
 
-    publish(src_conn_string, dst_conn_string, log_file, tables=["schema.table"])
+    publish(src_conn_string, dst_conn_string, tables=["schema.table"])
 
     with dst_conn:
         with dst_conn.cursor() as cursor:
@@ -61,7 +61,7 @@ def test_publish_table_success(
 
 @pytest.mark.usefixtures("src_view")
 def test_publish_view_missing_schema(
-    src_conn_string, dst_conn_string, src_table, dst_schema, dst_conn, log_file
+    src_conn_string, dst_conn_string, src_table, dst_schema, dst_conn
 ):
     from reims_publisher.core.publish import publish, PsqlOperationalError
 
@@ -69,7 +69,6 @@ def test_publish_view_missing_schema(
         publish(
             src_conn_string,
             dst_conn_string,
-            "/tmp/thisisalog.log",
             views=["schema.view"],
         )
     assert 'relation "schema.table" does not exist' in str(excinfo.value)
@@ -83,12 +82,11 @@ def test_publish_view_success(
     src_table,
     dst_schema,
     dst_conn,
-    log_file,
 ):
     from reims_publisher.core.publish import publish
 
     publish(
-        src_conn_string, dst_conn_string, "/tmp/thisisalog.log", views=["schema.view"]
+        src_conn_string, dst_conn_string, views=["schema.view"]
     )
     with dst_conn:
         with dst_conn.cursor() as cursor:

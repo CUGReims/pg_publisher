@@ -1,17 +1,18 @@
 import subprocess
 from typing import List, Optional
 
+from reims_publisher.core.logger import LOG_FILE_PATH
+
 
 def depublish(
     dst_conn_string: str,
-    log_file_path: str,
     schemas: Optional[List[str]] = None,
     tables: Optional[List[str]] = None,
     views: Optional[List[str]] = None,
     materialized_views: Optional[List[str]] = None,
     force: Optional[bool] = True,
 ):
-    with open(log_file_path, "a") as f:
+    with open(LOG_FILE_PATH, "a") as f:
         receiver = subprocess.Popen(
             ["psql", dst_conn_string], stdout=f, stdin=subprocess.PIPE
         )

@@ -65,5 +65,5 @@ pipwin install psycopg2
 
 cd reims_publisher
 pip install -e .
-pyinstaller --clean /src/cli.spe
+pyinstaller --clean ./cli.spe
 ```

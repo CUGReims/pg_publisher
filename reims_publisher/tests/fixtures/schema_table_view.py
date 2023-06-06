@@ -3,13 +3,6 @@ import os
 
 
 @pytest.fixture
-def log_file(src_conn):
-    file_name = "/tmp/thisisalog.log"
-    yield file_name
-    os.remove(file_name)
-
-
-@pytest.fixture
 def src_schema(src_conn):
     with src_conn:
         with src_conn.cursor() as cursor:
