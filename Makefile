@@ -3,6 +3,8 @@ export DOCKER_BUILDKIT = 1
 
 DOCKER_RUN_CMD = docker-compose run --rm --user `id -u`:`id -g` tester
 
+LAST_TAG = $(shell git describe --abbrev=0 --tags)
+
 default: help
 
 .PHONY: help
@@ -14,6 +16,15 @@ help: ## Display this help message
 
 build: ## Build docker images
 build: docker-build-publisher
+
+dist:
+	docker-compose run --rm --user `id -u`:`id -g` tester sh -c "cd /src && pyinstaller --clean /src/cli.spec"
+	chmod +x reims_publisher/dist/cli
+
+package: dist
+	rm -rf reims_publisher-$(LAST_TAG)-linux-amd64/
+	cp -r reims_publisher/dist/ reims_publisher-$(LAST_TAG)-linux-amd64/
+	tar -czvf reims_publisher-$(LAST_TAG)-linux-amd64.tar.gz reims_publisher-$(LAST_TAG)-linux-amd64
 
 docker-build-publisher:
 	docker build -t camptocamp/reims_publisher:latest reims_publisher

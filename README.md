@@ -67,3 +67,6 @@ cd reims_publisher
 pip install -e .
 pyinstaller --clean ./cli.spe
 ```
+
+Now you can rename dist folder to something like `reims_publisher-v0.1.0-alpha2-windows-amd64`
+and create a ZIP archive.
