@@ -458,6 +458,7 @@ def main_table_process(conn_src, conn_dst, logger):
         tables_dependencies = can_publish_to_dst_server(
             conn_dst, src_dependencies, schemas=[schema], tables=tables
         )
+    logger.object_names = tables
     if not tables_dependencies["can_publish"]:
         logger.error_messages.append(tables_dependencies["table_view_errors"])
         logger.error_messages.append(tables_dependencies["schema_errors"])
@@ -495,7 +496,7 @@ def main_view_process(conn_src, conn_dst, logger):
     views = questionary.checkbox(
         "Selection du ou des vues", choices=existing_views, validate=choice_checker
     ).ask()
-
+    logger.object_names = views
     src_dependencies = SchemaQuerier.get_dependant_tables_objects(conn_src, views)
 
     if src_dependencies["views"] is None and src_dependencies["constraints"] is None:
@@ -558,6 +559,7 @@ def main_mat_view_process(conn_src, conn_dst, logger):
         tables_dependencies = can_publish_to_dst_server(
             conn_dst, src_dependencies, schemas=[schema], materialized_views=mat_views
         )
+    logger.object_names = mat_views
     if not tables_dependencies["can_publish"]:
         logger.error_messages.append(tables_dependencies["table_view_errors"])
         logger.error_messages.append(tables_dependencies["schema_errors"])
