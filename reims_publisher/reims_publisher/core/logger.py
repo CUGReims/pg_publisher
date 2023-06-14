@@ -83,7 +83,11 @@ class PublisherLogger:
 
     @property
     def dependences_warning(self):
-        return ",".join(self._dependences_warning) if self._dependences_warning is not None else None
+        return (
+            ",".join(self._dependences_warning)
+            if self._dependences_warning is not None
+            else None
+        )
 
     @dependences_warning.setter
     def dependences_warning(self, dependences_warning):
@@ -140,8 +144,9 @@ class PublisherLogger:
         return cmd_command
 
     def insert_log_row(self):
-        sql = """INSERT INTO logging.logging (utilisateur, src_db_service_name, dst_db_service_name,
-         type_objet, nom_objets, succes, log_complet, message_erreur, commande, publier_depublier, warning_dependances)
+        sql = """INSERT INTO logging.logging (utilisateur, src_db_service_name,
+         dst_db_service_name, type_objet, nom_objets, succes, log_complet,
+         message_erreur, commande, publier_depublier, warning_dependances)
         VALUES (
         '{user}',
         '{src_db}',

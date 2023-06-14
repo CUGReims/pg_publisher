@@ -60,11 +60,7 @@ def publish(
             dump_command += [arg for schema in schemas for arg in ["-n", schema]]
             dump_command += [src_conn_string]
             LOG.info("Running dump command: %s", dump_command)
-            emitter = subprocess.Popen(
-                dump_command,
-                stdout=receiver.stdin,
-                stderr=f,
-            )
+            emitter = subprocess.Popen(dump_command, stdout=receiver.stdin, stderr=f)
             emitter.communicate()
 
         if tables:
@@ -79,11 +75,7 @@ def publish(
             dump_command += [arg for table in tables for arg in ["-t", table]]
             dump_command += [src_conn_string]
             LOG.info("Running dump command: %s", dump_command)
-            emitter = subprocess.Popen(
-                dump_command,
-                stdout=receiver.stdin,
-                stderr=f,
-            )
+            emitter = subprocess.Popen(dump_command, stdout=receiver.stdin, stderr=f)
             emitter.communicate()
 
         if views:
@@ -98,11 +90,7 @@ def publish(
             dump_command += [arg for view in views for arg in ["-t", view]]
             dump_command += [src_conn_string]
             LOG.info("Running dump command: %s", dump_command)
-            emitter = subprocess.Popen(
-                dump_command,
-                stdout=receiver.stdin,
-                stderr=f,
-            )
+            emitter = subprocess.Popen(dump_command, stdout=receiver.stdin, stderr=f)
             emitter.communicate()
 
         if materialized_views:
@@ -119,11 +107,7 @@ def publish(
             ]
             dump_command += [src_conn_string]
             LOG.info("Running dump command: %s", dump_command)
-            emitter = subprocess.Popen(
-                dump_command,
-                stdout=receiver.stdin,
-                stderr=f,
-            )
+            emitter = subprocess.Popen(dump_command, stdout=receiver.stdin, stderr=f)
             emitter.communicate()
 
         receiver.communicate()

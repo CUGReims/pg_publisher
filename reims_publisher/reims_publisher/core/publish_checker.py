@@ -142,7 +142,6 @@ def can_publish_to_dst_server(
                     dep["dependent_schema"],
                     dep["dependent_table"],
                     dep["source_schema"],
-
                 ),
             )
     return {

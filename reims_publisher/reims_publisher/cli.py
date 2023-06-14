@@ -78,11 +78,7 @@ def cli_depublish():
             )
         ).ask()
         if confirm:
-            depublish(
-                dst_conn_string,
-                schemas=process["schemas"],
-                force=force,
-            )
+            depublish(dst_conn_string, schemas=process["schemas"], force=force)
             questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
             questionary.print("Script de dépublication terminé")
@@ -114,11 +110,7 @@ def cli_depublish():
             )
         ).ask()
         if confirm:
-            depublish(
-                dst_conn_string,
-                tables=process["tables"],
-                force=force,
-            )
+            depublish(dst_conn_string, tables=process["tables"], force=force)
 
             questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
@@ -152,11 +144,7 @@ def cli_depublish():
             )
         ).ask()
         if confirm:
-            depublish(
-                dst_conn_string,
-                views=process["views"],
-                force=force,
-            )
+            depublish(dst_conn_string, views=process["views"], force=force)
 
             questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
@@ -193,9 +181,7 @@ def cli_depublish():
         ).ask()
         if confirm:
             depublish(
-                dst_conn_string,
-                materialized_views=process["mat_views"],
-                force=force,
+                dst_conn_string, materialized_views=process["mat_views"], force=force
             )
 
             questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
