@@ -139,9 +139,10 @@ def can_publish_to_dst_server(
                 0,
                 "La vue {} du schéma {} dependant de la table {} du schéma {} sera supprimé. ".format(
                     dep["view"],
-                    dep["source_schema"],
-                    dep["dependent_table"],
                     dep["dependent_schema"],
+                    dep["dependent_table"],
+                    dep["source_schema"],
+
                 ),
             )
     return {
@@ -197,6 +198,6 @@ def schema_dependence_message(dep_tuple: []) -> str:
 
 
 def has_reference_message(schema_names: [str], table_name: str) -> str:
-    return "La table '{}' utilise un objet du/des schéma(s) en cours de publication: {}, ".format(
+    return "Une table/vue du/des schémas en cours de publication {}, utilise la table {}. ".format(
         table_name, ",".join(schema_names)
     )
