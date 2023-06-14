@@ -295,6 +295,23 @@ def cli_publish(no_acl_no_owner):
             force = questionary.confirm(
                 "Souhaitez-vous ignorer les warnings et essayer de publier ?"
             ).ask()
+        if "missing_schema" in process.keys():
+            # ask question of you want to create the schema
+            create_schema = questionary.confirm(
+                "Le schéma {} n'existe pas dans la base de destination, voulez-vous le créer ?".format(
+                    process["missing_schema"]
+                )
+            ).ask()
+            if create_schema:
+                with dst_conn.cursor() as cursor:
+                    cursor.execute(
+                        "CREATE SCHEMA IF NOT EXISTS {};".format(
+                            process["missing_schema"]
+                        )
+                    )
+                    questionary.print("Le schéma {} a été créé".format(process["missing_schema"]))
+                dst_conn.commit()
+                force = True
         if not force or not process["tables"]:
             questionary.print(no_change_message())
             return
@@ -408,7 +425,7 @@ def cli_publish(no_acl_no_owner):
             logger.success = True
             questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
-            questionary.print("Script de publication terminé")
+            questionary.print("Script de publication terminé avec succès")
         else:
             questionary.print("Script de publication annulé")
 
@@ -423,10 +440,6 @@ def main_table_process(conn_src, conn_dst, logger):
         "Selection du schéma", choices=SchemaQuerier.get_schemas(conn_src)
     ).ask()
 
-    # Check if schemas exists, raise error if not
-    if not SchemaQuerier.schema_exists(conn_dst, schema):
-        logger.error_messages.append(no_schema_message(schema))
-        return {"success": False, "tables": [], "logger": logger, "views_dep": None}
 
     existing_tables = SchemaQuerier.get_tables_from_schema(conn_src, schema)
     if not existing_tables:
@@ -445,7 +458,12 @@ def main_table_process(conn_src, conn_dst, logger):
             conn_dst, src_dependencies, schemas=[schema], tables=tables
         )
     logger.object_names = tables
-    logger.dependencies = tables_dependencies["table_view_warnings"]
+    logger.dependencies = tables_dependencies["table_view_warnings"] if tables_dependencies["table_view_warnings"] else None
+
+    # Check if schemas exists, raise error if not
+    if not SchemaQuerier.schema_exists(conn_dst, schema):
+        logger.error_messages.append(no_schema_message(schema))
+        return {"success": False, "tables": tables, "logger": logger, "views_dep": None, "missing_schema": schema}
 
     if not tables_dependencies["can_publish"]:
         logger.error_messages.append(tables_dependencies["table_view_errors"])
@@ -495,7 +513,7 @@ def main_view_process(conn_src, conn_dst, logger):
             conn_dst, src_dependencies, schemas=[schema], views=views
         )
     logger.object_names = views
-    logger.dependencies = ".".join(tables_dependencies["table_view_warnings"])
+    logger.dependencies = tables_dependencies["table_view_warnings"] if tables_dependencies["table_view_warnings"] else None
     if not tables_dependencies["can_publish"]:
         logger.error_messages.append(tables_dependencies["table_view_errors"])
         logger.error_messages.append(tables_dependencies["schema_errors"])
@@ -550,10 +568,9 @@ def main_mat_view_process(conn_src, conn_dst, logger):
             conn_dst, src_dependencies, schemas=[schema], materialized_views=mat_views
         )
     logger.object_names = mat_views
-    logger.dependencies = ".".join(tables_dependencies["table_view_warnings"])
+    logger.dependencies = tables_dependencies["table_view_warnings"] if tables_dependencies["table_view_warnings"] else None
     if not tables_dependencies["can_publish"]:
         logger.error_messages.append(tables_dependencies["table_view_errors"])
-        logger.error_messages.append(tables_dependencies["schema_errors"])
         logger.error_messages.append(tables_dependencies["schema_errors"])
 
         return {
@@ -581,7 +598,6 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
 
     src_dependant = SchemaQuerier.get_dependant_schemas_objects(conn_src, schemas)
     logger.object_names = schemas
-    logger.dependencies = ".".join(src_dependant["schema_warnings"])
 
     questionary.print("Vérifications des dépendances...")
     tables_to_be_published = list(
@@ -633,6 +649,7 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
         schemas_dependencies = can_publish_to_dst_server(
             conn_dst, src_dependant, schemas=schemas, tables=tables_to_be_published
         )
+    logger.dependencies = schemas_dependencies["schema_warnings"] if schemas_dependencies["schema_warnings"] else None
     if not schemas_dependencies["can_publish"]:
         for schema_dep_error in (
             schemas_dependencies["table_view_errors"]
