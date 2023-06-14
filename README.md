@@ -47,13 +47,13 @@ make tests
 
 ### For Linux
 
-```shell
-docker-compose run --rm --user `id -u`:`id -g` tester sh -c "cd /src && pyinstaller --clean /src/cli.spec"
+Create a git tag first then:
 
-chmod +x reims_publisher/dist/cli
-
-./reims_publisher/dist/cli
 ```
+make package
+```
+
+Which will create the file named `reims_publisher-$(TAG)-linux-amd64.tar.gz`.
 
 ### For Windows
 
@@ -65,7 +65,7 @@ pipwin install psycopg2
 
 cd reims_publisher
 pip install -e .
-pyinstaller --clean ./cli.spe
+pyinstaller --clean ./cli.spec
 ```
 
 Now you can rename dist folder to something like `reims_publisher-v0.1.0-alpha2-windows-amd64`
