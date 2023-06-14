@@ -309,7 +309,9 @@ def cli_publish(no_acl_no_owner):
                             process["missing_schema"]
                         )
                     )
-                    questionary.print("Le schéma {} a été créé".format(process["missing_schema"]))
+                    questionary.print(
+                        "Le schéma {} a été créé".format(process["missing_schema"])
+                    )
                 dst_conn.commit()
                 force = True
         if not force or not process["tables"]:
@@ -440,7 +442,6 @@ def main_table_process(conn_src, conn_dst, logger):
         "Selection du schéma", choices=SchemaQuerier.get_schemas(conn_src)
     ).ask()
 
-
     existing_tables = SchemaQuerier.get_tables_from_schema(conn_src, schema)
     if not existing_tables:
         logger.error_messages.append(no_table_in_schema(schema))
@@ -458,12 +459,22 @@ def main_table_process(conn_src, conn_dst, logger):
             conn_dst, src_dependencies, schemas=[schema], tables=tables
         )
     logger.object_names = tables
-    logger.dependencies = tables_dependencies["table_view_warnings"] if tables_dependencies["table_view_warnings"] else None
+    logger.dependencies = (
+        tables_dependencies["table_view_warnings"]
+        if tables_dependencies["table_view_warnings"]
+        else None
+    )
 
     # Check if schemas exists, raise error if not
     if not SchemaQuerier.schema_exists(conn_dst, schema):
         logger.error_messages.append(no_schema_message(schema))
-        return {"success": False, "tables": tables, "logger": logger, "views_dep": None, "missing_schema": schema}
+        return {
+            "success": False,
+            "tables": tables,
+            "logger": logger,
+            "views_dep": None,
+            "missing_schema": schema,
+        }
 
     if not tables_dependencies["can_publish"]:
         logger.error_messages.append(tables_dependencies["table_view_errors"])
@@ -513,7 +524,11 @@ def main_view_process(conn_src, conn_dst, logger):
             conn_dst, src_dependencies, schemas=[schema], views=views
         )
     logger.object_names = views
-    logger.dependencies = tables_dependencies["table_view_warnings"] if tables_dependencies["table_view_warnings"] else None
+    logger.dependencies = (
+        tables_dependencies["table_view_warnings"]
+        if tables_dependencies["table_view_warnings"]
+        else None
+    )
     if not tables_dependencies["can_publish"]:
         logger.error_messages.append(tables_dependencies["table_view_errors"])
         logger.error_messages.append(tables_dependencies["schema_errors"])
@@ -568,7 +583,11 @@ def main_mat_view_process(conn_src, conn_dst, logger):
             conn_dst, src_dependencies, schemas=[schema], materialized_views=mat_views
         )
     logger.object_names = mat_views
-    logger.dependencies = tables_dependencies["table_view_warnings"] if tables_dependencies["table_view_warnings"] else None
+    logger.dependencies = (
+        tables_dependencies["table_view_warnings"]
+        if tables_dependencies["table_view_warnings"]
+        else None
+    )
     if not tables_dependencies["can_publish"]:
         logger.error_messages.append(tables_dependencies["table_view_errors"])
         logger.error_messages.append(tables_dependencies["schema_errors"])
@@ -649,7 +668,11 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
         schemas_dependencies = can_publish_to_dst_server(
             conn_dst, src_dependant, schemas=schemas, tables=tables_to_be_published
         )
-    logger.dependencies = schemas_dependencies["schema_warnings"] if schemas_dependencies["schema_warnings"] else None
+    logger.dependencies = (
+        schemas_dependencies["schema_warnings"]
+        if schemas_dependencies["schema_warnings"]
+        else None
+    )
     if not schemas_dependencies["can_publish"]:
         for schema_dep_error in (
             schemas_dependencies["table_view_errors"]
