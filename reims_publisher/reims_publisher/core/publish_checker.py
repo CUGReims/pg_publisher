@@ -60,7 +60,7 @@ def can_publish_to_dst_server(
         if not SchemaQuerier.schema_table_exists(database_connection, table):
             schema_errors.insert(0, no_table_message(table))
         else:
-            schema_warnings.insert(0, has_reference_message(schemas, table))
+            schema_warnings.insert(0, has_reference_message(tables, table))
 
     if len(views) != 0:
         get_unique_source_views = list(
@@ -196,7 +196,14 @@ def schema_dependence_message(dep_tuple: []) -> str:
     )
 
 
-def has_reference_message(schema_names: [str], table_name: str) -> str:
-    return "Une table/vue du/des schémas en cours de publication {}, utilise la table {}. ".format(
-        table_name, ",".join(schema_names)
+def has_reference_message(tables: [str], table_name: str) -> str:
+    if len(tables) > 1:
+        return (
+            "Les tables en cours de publication {} font référence à la table {}".format(
+                ", ".join(tables), table_name
+            )
+        )
+
+    return "La table en cours de publication {} est référencée par une table/vue {}".format(
+        tables[0], table_name
     )

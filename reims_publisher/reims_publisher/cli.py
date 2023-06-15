@@ -459,7 +459,7 @@ def main_table_process(conn_src, conn_dst, logger):
             conn_dst, src_dependencies, schemas=[schema], tables=tables
         )
     logger.object_names = tables
-    logger.dependencies = (
+    logger.dependences_warning = (
         tables_dependencies["table_view_warnings"]
         if tables_dependencies["table_view_warnings"]
         else None
@@ -524,7 +524,7 @@ def main_view_process(conn_src, conn_dst, logger):
             conn_dst, src_dependencies, schemas=[schema], views=views
         )
     logger.object_names = views
-    logger.dependencies = (
+    logger.dependences_warning = (
         tables_dependencies["table_view_warnings"]
         if tables_dependencies["table_view_warnings"]
         else None
@@ -583,7 +583,7 @@ def main_mat_view_process(conn_src, conn_dst, logger):
             conn_dst, src_dependencies, schemas=[schema], materialized_views=mat_views
         )
     logger.object_names = mat_views
-    logger.dependencies = (
+    logger.dependences_warning = (
         tables_dependencies["table_view_warnings"]
         if tables_dependencies["table_view_warnings"]
         else None
@@ -668,7 +668,7 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
         schemas_dependencies = can_publish_to_dst_server(
             conn_dst, src_dependant, schemas=schemas, tables=tables_to_be_published
         )
-    logger.dependencies = (
+    logger.dependences_warning = (
         schemas_dependencies["schema_warnings"]
         if schemas_dependencies["schema_warnings"]
         else None
