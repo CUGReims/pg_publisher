@@ -30,6 +30,25 @@ BASIC_POSTGRES_OBJECTS = {
 }
 
 
+def create_schema(dst_conn, process):
+    """Create a schema on the destination server"""
+    # ask question of you want to create the schema
+    create_schema = questionary.confirm(
+        "Le schéma {} n'existe pas dans la base de destination, voulez-vous le créer ?".format(
+            process["missing_schema"]
+        )
+    ).ask()
+    if create_schema:
+        with dst_conn.cursor() as cursor:
+            cursor.execute(
+                "CREATE SCHEMA IF NOT EXISTS {};".format(process["missing_schema"])
+            )
+            questionary.print(
+                "Le schéma {} a été créé".format(process["missing_schema"])
+            )
+        dst_conn.commit()
+
+
 def cli_depublish():
 
     available_services = get_services()
@@ -297,23 +316,8 @@ def cli_publish(no_acl_no_owner):
             ).ask()
         if "missing_schema" in process.keys():
             # ask question of you want to create the schema
-            create_schema = questionary.confirm(
-                "Le schéma {} n'existe pas dans la base de destination, voulez-vous le créer ?".format(
-                    process["missing_schema"]
-                )
-            ).ask()
-            if create_schema:
-                with dst_conn.cursor() as cursor:
-                    cursor.execute(
-                        "CREATE SCHEMA IF NOT EXISTS {};".format(
-                            process["missing_schema"]
-                        )
-                    )
-                    questionary.print(
-                        "Le schéma {} a été créé".format(process["missing_schema"])
-                    )
-                dst_conn.commit()
-                force = True
+            create_schema(dst_conn, process)
+            force = True
         if not force or not process["tables"]:
             questionary.print(no_change_message())
             return
@@ -349,6 +353,8 @@ def cli_publish(no_acl_no_owner):
             )
             questionary.print(",\n".join(logger.error_messages))
 
+        if "missing_schema" in process.keys():
+            create_schema(dst_conn, process)
         force = True
         # check for warnings
         if process["views_dep"]:
@@ -409,6 +415,10 @@ def cli_publish(no_acl_no_owner):
         if not force or not process["mat_views"]:
             questionary.print(no_change_message())
             return
+        if "missing_schema" in process.keys():
+            # ask question of you want to create the schema
+            create_schema(dst_conn, process)
+            force = True
         logger = process["logger"]
         # Now publish
         confirm = questionary.confirm(
@@ -501,11 +511,6 @@ def main_view_process(conn_src, conn_dst, logger):
         "Selection du schéma", choices=SchemaQuerier.get_schemas_with_views(conn_src)
     ).ask()
 
-    # Check if schemas exists, raise error if not
-    if not SchemaQuerier.schema_exists(conn_dst, schema):
-        logger.error_messages.append(no_schema_message(schema))
-        return {"success": False, "views": [], "logger": logger, "views_dep": None}
-
     existing_views = SchemaQuerier.get_views_from_schema(conn_src, schema)
     if not existing_views:
         logger.error_messages.append(no_view_in_schema(schema))
@@ -529,6 +534,17 @@ def main_view_process(conn_src, conn_dst, logger):
         if tables_dependencies["table_view_warnings"]
         else None
     )
+    # Check if schemas exists, raise error if not
+    if not SchemaQuerier.schema_exists(conn_dst, schema):
+        logger.error_messages.append(no_schema_message(schema))
+        return {
+            "success": False,
+            "views": views,
+            "logger": logger,
+            "views_dep": None,
+            "missing_schema": schema,
+        }
+
     if not tables_dependencies["can_publish"]:
         logger.error_messages.append(tables_dependencies["table_view_errors"])
         logger.error_messages.append(tables_dependencies["schema_errors"])
@@ -553,11 +569,6 @@ def main_mat_view_process(conn_src, conn_dst, logger):
     schema = questionary.select(
         "Selection du schéma", choices=SchemaQuerier.get_schemas_with_matviews(conn_src)
     ).ask()
-
-    # Check if schemas exists, raise error if not
-    if not SchemaQuerier.schema_exists(conn_dst, schema):
-        logger.error_messages.append(no_schema_message(schema))
-        return {"success": False, "mat_views": [], "logger": logger, "views_dep": None}
 
     existing_mat_views = SchemaQuerier.get_materialized_views_from_schema(
         conn_src, schema
@@ -588,6 +599,17 @@ def main_mat_view_process(conn_src, conn_dst, logger):
         if tables_dependencies["table_view_warnings"]
         else None
     )
+    # Check if schemas exists, raise error if not
+    if not SchemaQuerier.schema_exists(conn_dst, schema):
+        logger.error_messages.append(no_schema_message(schema))
+        return {
+            "success": False,
+            "mat_views": mat_views,
+            "logger": logger,
+            "views_dep": None,
+            "missing_schema": schema,
+        }
+
     if not tables_dependencies["can_publish"]:
         logger.error_messages.append(tables_dependencies["table_view_errors"])
         logger.error_messages.append(tables_dependencies["schema_errors"])
