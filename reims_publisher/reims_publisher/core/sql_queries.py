@@ -19,7 +19,7 @@ def get_schemas_dependencies(schemas: [str]) -> [dict]:
       dependent_view, 'source_schema', source_schema, 'dependent_table', dependent_table,
       'dependent_schema_table', dependent_schema || '.' || dependent_table
     FROM cte
-    WHERE cte.dependent_schema <> cte.source_schema and cte.source_schema in ({});
+    WHERE cte.dependent_schema <> cte.source_schema and cte.dependent_schema in ({});
     """.format(
         joined_schemas
     )

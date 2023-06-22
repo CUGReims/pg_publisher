@@ -689,7 +689,7 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
         "schema_dependencies_depublish": schemas_dependencies[
             "schema_dependencies_depublish"
         ],
-        "schema_warnings": schemas_dependencies["schema_warnings"],
+        "schema_warnings": schemas_dependencies["schema_warnings"] + schemas_dependencies['table_view_warnings'],
         "materialized_views": materialized_views_to_be_published,
         "logger": logger,
     }
