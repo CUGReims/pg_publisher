@@ -140,7 +140,7 @@ def can_publish_to_dst_server(
         else:
             table_view_warnings.insert(
                 0,
-                "La vue {} du schéma {} dependant de la table {} du schéma {} sera supprimé. ".format(
+                "La vue {} du schéma {} dependant de la table {} du schéma {} sera supprimée".format(
                     dep["view"],
                     dep["dependent_schema"],
                     dep["dependent_table"],
@@ -205,6 +205,6 @@ def has_reference_message(tables: [str], table_name: str) -> str:
             ", ".join(tables), table_name
         )
 
-    return "La table en cours de publication {} est référencée par une table/vue {}".format(
+    return "La table en cours de publication {} fait référence à une table/vue {}".format(
         tables[0], table_name
     )
