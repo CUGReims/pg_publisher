@@ -37,7 +37,6 @@ def can_publish_to_dst_server(
             database_connection, schemas
         ):
             schema_dependencies_depublish.append(schema_dependence_message(dep))
-
     schemas_not_specified = [
         schema for schema in get_unique_source_schemas if schema not in schemas
     ]
@@ -60,7 +59,11 @@ def can_publish_to_dst_server(
         if not SchemaQuerier.schema_table_exists(database_connection, table):
             schema_errors.insert(0, no_table_message(table))
         else:
-            schema_warnings.insert(0, has_reference_message(tables, table))
+            for item in src_dependencies["constraints"]:
+                if item["source_schema_table"] in tables:
+                    schema_warnings.insert(
+                        0, has_reference_message([item["source_schema_table"]], table)
+                    )
 
     if len(views) != 0:
         get_unique_source_views = list(
@@ -198,10 +201,8 @@ def schema_dependence_message(dep_tuple: []) -> str:
 
 def has_reference_message(tables: [str], table_name: str) -> str:
     if len(tables) > 1:
-        return (
-            "Les tables en cours de publication {} font référence à la table {}".format(
-                ", ".join(tables), table_name
-            )
+        return "Les tables en cours de publication {} font référence à la table {}".format(
+            ", ".join(tables), table_name
         )
 
     return "La table en cours de publication {} est référencée par une table/vue {}".format(
