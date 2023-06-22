@@ -364,6 +364,7 @@ def cli_publish(no_acl_no_owner):
             force = questionary.confirm(
                 "Souhaitez-vous ignorer les warnings et essayer de publier ?"
             ).ask()
+
         if not force or not process["views"]:
             questionary.print(no_change_message())
             return
