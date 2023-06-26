@@ -7,7 +7,7 @@ from reims_publisher.core.sql_queries import (
     get_tables_fk_dependencies,
     get_schemas_fk_dependencies,
     get_schemas_fk_constraints,
-    get_view_elements
+    get_view_elements,
 )
 
 config = get_config()
@@ -203,6 +203,7 @@ class SchemaQuerier:
                 for dependency in dependencies_fk
             ],
         }
+
     @staticmethod
     def get_dependant_views_object(src_database_connection, views):
         """
@@ -224,7 +225,7 @@ class SchemaQuerier:
                 dict(zip(dependency[::2], dependency[1::2]))
                 for dependency in dependencies_fk
                 if dependency in dependencies_fk
-            ]
+            ],
         }
 
     @staticmethod

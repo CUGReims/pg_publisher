@@ -351,8 +351,9 @@ def cli_publish(no_acl_no_owner):
                 "{} Erreurs rencontrées".format(logger.error_count_messages),
                 style="bold italic fg:red",
             )
-            questionary.print(",\n".join(logger.error_messages),
-                              style="bold italic fg:red")
+            questionary.print(
+                ",\n".join(logger.error_messages), style="bold italic fg:red"
+            )
 
         if "missing_schema" in process.keys():
             create_schema(dst_conn, process)
@@ -496,13 +497,15 @@ def main_table_process(conn_src, conn_dst, logger):
         return {
             "success": False,
             "tables": tables,
-            "views_dep": tables_dependencies["table_view_warnings"] + tables_dependencies["schema_warnings"],
+            "views_dep": tables_dependencies["table_view_warnings"]
+            + tables_dependencies["schema_warnings"],
             "logger": logger,
         }
     return {
         "success": True,
         "tables": tables,
-        "views_dep": tables_dependencies["table_view_warnings"]+ tables_dependencies["schema_warnings"],
+        "views_dep": tables_dependencies["table_view_warnings"]
+        + tables_dependencies["schema_warnings"],
         "logger": logger,
     }
 
@@ -549,7 +552,10 @@ def main_view_process(conn_src, conn_dst, logger):
         }
 
     if not tables_dependencies["can_publish"]:
-        for error in tables_dependencies["table_view_errors"] + tables_dependencies["schema_errors"]:
+        for error in (
+            tables_dependencies["table_view_errors"]
+            + tables_dependencies["schema_errors"]
+        ):
             logger.error_messages.append(error)
 
         return {

@@ -160,20 +160,15 @@ def can_publish_to_dst_server(
 
 
 def no_schema_message(schema_name: str) -> str:
-    return (
-        "Le schema {} ne se trouve pas "
-        "sur le serveur de destination \n ".format(
-            schema_name
-        )
+    return "Le schema {} ne se trouve pas " "sur le serveur de destination \n ".format(
+        schema_name
     )
 
 
 def no_table_message(table_name: str) -> str:
     return (
         "La table {} ne se trouve pas "
-        "sur le serveur de destination, merci de la créer/publier".format(
-            table_name
-        )
+        "sur le serveur de destination, merci de la créer/publier".format(table_name)
     )
 
 

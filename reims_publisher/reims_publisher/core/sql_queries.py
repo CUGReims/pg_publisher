@@ -164,4 +164,6 @@ def get_view_elements(views: str) -> [dict]:
   view_dependencies;
 
 
-        """.format(schema_name, schema_name, joined_views)
+        """.format(
+        schema_name, schema_name, joined_views
+    )
