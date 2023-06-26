@@ -162,7 +162,7 @@ def can_publish_to_dst_server(
 def no_schema_message(schema_name: str) -> str:
     return (
         "Le schema {} ne se trouve pas "
-        "sur le serveur de destination, merci de le créer/publier \n ".format(
+        "sur le serveur de destination \n ".format(
             schema_name
         )
     )

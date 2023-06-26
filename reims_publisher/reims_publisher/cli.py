@@ -486,21 +486,22 @@ def main_table_process(conn_src, conn_dst, logger):
             "views_dep": None,
             "missing_schema": schema,
         }
-
     if not tables_dependencies["can_publish"]:
-        logger.error_messages.append(tables_dependencies["table_view_errors"])
-        logger.error_messages.append(tables_dependencies["schema_errors"])
+        for view_error in tables_dependencies["table_view_warnings"]:
+            logger.error_messages.append(view_error)
+        for schema_error in tables_dependencies["schema_errors"]:
+            logger.error_messages.append(schema_error)
 
         return {
             "success": False,
             "tables": tables,
-            "views_dep": tables_dependencies["table_view_warnings"],
+            "views_dep": tables_dependencies["table_view_warnings"] + tables_dependencies["schema_warnings"],
             "logger": logger,
         }
     return {
         "success": True,
         "tables": tables,
-        "views_dep": tables_dependencies["table_view_warnings"],
+        "views_dep": tables_dependencies["table_view_warnings"]+ tables_dependencies["schema_warnings"],
         "logger": logger,
     }
 
