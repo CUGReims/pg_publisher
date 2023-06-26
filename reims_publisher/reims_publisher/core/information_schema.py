@@ -7,6 +7,7 @@ from reims_publisher.core.sql_queries import (
     get_tables_fk_dependencies,
     get_schemas_fk_dependencies,
     get_schemas_fk_constraints,
+    get_view_elements
 )
 
 config = get_config()
@@ -201,6 +202,29 @@ class SchemaQuerier:
                 dict(zip(dependency[::2], dependency[1::2]))
                 for dependency in dependencies_fk
             ],
+        }
+    @staticmethod
+    def get_dependant_views_object(src_database_connection, views):
+        """
+        Get all the objects that are used to create the views from teh source database
+        Then check that theses objects exists in the destination database
+        """
+        with src_database_connection.cursor() as cursor:
+            cursor.execute(get_view_elements(views))
+            dependencies_views = cursor.fetchall()
+            cursor.execute(get_tables_view_dependencies(views))
+            dependencies_fk = cursor.fetchall()
+        return {
+            "views": [
+                dict(zip(dependency[::2], dependency[1::2]))
+                for dependency in dependencies_views
+                if dependency in dependencies_views
+            ],
+            "constraints": [
+                dict(zip(dependency[::2], dependency[1::2]))
+                for dependency in dependencies_fk
+                if dependency in dependencies_fk
+            ]
         }
 
     @staticmethod

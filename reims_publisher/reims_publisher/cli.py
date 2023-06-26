@@ -351,7 +351,8 @@ def cli_publish(no_acl_no_owner):
                 "{} Erreurs rencontrées".format(logger.error_count_messages),
                 style="bold italic fg:red",
             )
-            questionary.print(",\n".join(logger.error_messages))
+            questionary.print(",\n".join(logger.error_messages),
+                              style="bold italic fg:red")
 
         if "missing_schema" in process.keys():
             create_schema(dst_conn, process)
@@ -520,8 +521,8 @@ def main_view_process(conn_src, conn_dst, logger):
     views = questionary.checkbox(
         "Selection du ou des vues", choices=existing_views, validate=choice_checker
     ).ask()
-
-    src_dependencies = SchemaQuerier.get_dependant_tables_objects(conn_src, views)
+    #
+    src_dependencies = SchemaQuerier.get_dependant_views_object(conn_src, views)
 
     if src_dependencies["views"] is None and src_dependencies["constraints"] is None:
         questionary.print("Aucune dépendances")
@@ -548,8 +549,8 @@ def main_view_process(conn_src, conn_dst, logger):
         }
 
     if not tables_dependencies["can_publish"]:
-        logger.error_messages.append(tables_dependencies["table_view_errors"])
-        logger.error_messages.append(tables_dependencies["schema_errors"])
+        for error in tables_dependencies["table_view_errors"] + tables_dependencies["schema_errors"]:
+            logger.error_messages.append(error)
 
         return {
             "success": False,
@@ -584,7 +585,7 @@ def main_mat_view_process(conn_src, conn_dst, logger):
         validate=choice_checker,
     ).ask()
 
-    src_dependencies = SchemaQuerier.get_dependant_tables_objects(
+    src_dependencies = SchemaQuerier.get_dependant_views_object(
         conn_src, existing_mat_views
     )
 

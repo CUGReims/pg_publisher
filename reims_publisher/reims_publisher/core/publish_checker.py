@@ -78,7 +78,7 @@ def can_publish_to_dst_server(
         ]
         for view in views_not_specified:
             if not SchemaQuerier.schema_view_exists(database_connection, view):
-                schema_errors.insert(0, no_view_message(view))
+                schema_errors.insert(0, no_view_table_message(view))
     if len(materialized_views) != 0:
         get_unique_source_mat_views = list(
             set(
@@ -171,16 +171,16 @@ def no_schema_message(schema_name: str) -> str:
 def no_table_message(table_name: str) -> str:
     return (
         "La table {} ne se trouve pas "
-        "sur le serveur de destination, merci de le créer/publier \n ".format(
+        "sur le serveur de destination, merci de la créer/publier".format(
             table_name
         )
     )
 
 
-def no_view_message(view_name: str) -> str:
+def no_view_table_message(view_name: str) -> str:
     return (
-        "La vue {} ne se trouve pas "
-        "sur le serveur de destination, merci de le créer/publier \n ".format(view_name)
+        "La table/vue {} ne se trouve pas "
+        "sur le serveur de destination, merci de la créer/publier".format(view_name)
     )
 
 

@@ -98,7 +98,7 @@ def get_tables_fk_dependencies(tables: [str]) -> [dict]:
 
 def get_tables_view_dependencies(tables: [str]) -> [dict]:
     joined_tables = ", ".join(f"'{table}'" for table in tables)
-    return """    WITH cte as (
+    return """WITH cte as (
       SELECT dependent_ns.nspname as dependent_schema,
        dependent_view.relname as dependent_view,
        source_ns.nspname as source_schema,
@@ -121,3 +121,47 @@ def get_tables_view_dependencies(tables: [str]) -> [dict]:
     """.format(
         joined_tables
     )
+
+
+def get_view_elements(views: str) -> [dict]:
+    schema_name = views[0].split(".")[0]
+    joined_views = ", ".join(f"'{view.split('.')[1]}'" for view in views)
+    return """
+       WITH RECURSIVE view_dependencies AS (
+  SELECT
+    'dependent_schema' AS column_name,
+    table_schema,
+    'source_schema' AS column_name,
+    '{}' AS source_schema,
+    'dependent_table' AS column_name,
+    table_name,
+    'dependent_schema_table' AS column_name,
+    table_schema || '.' || table_name AS dependent_schema_table,
+    'view' AS column_name,
+    view_name
+
+  FROM
+    information_schema.view_table_usage
+  WHERE
+    view_schema = '{}' AND
+    view_name in ({}) -- Replace with your actual schema and view name
+  UNION
+  SELECT
+    'dependent_schema_table' AS column_name,
+    vt.table_schema,
+    'source_schema' AS column_name,
+    'test_pub_vue' AS source_schema,
+    'dependent_table' AS column_name,
+    vt.table_name,
+    'dependent_schema_table' AS column_name,
+    vt.table_schema || '.' || vt.table_name AS dependent_schema_table,
+    'view' AS column_name,
+    vt.view_name
+  FROM
+    view_dependencies vd
+    JOIN information_schema.view_table_usage vt ON vd.table_schema = vt.view_schema AND vd.table_name = vt.view_name
+)SELECT * FROM
+  view_dependencies;
+
+
+        """.format(schema_name, schema_name, joined_views)
