@@ -121,6 +121,8 @@ def can_publish_to_dst_server(
             dep["dependent_schema"], dep["dependent_table"]
         )
         # When publishing check that all dep exists
+        if dep['dependent_schema'] in schemas:
+            continue
         if (
             dependent_schema_table_name in tables_not_specified
             and not SchemaQuerier.schema_table_exists(
