@@ -337,7 +337,7 @@ def cli_publish(no_acl_no_owner):
                 force=force,
             )
             logger.success = True
-            questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
+            questionary.print("python3 cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
             questionary.print("Script de publication terminé")
         else:
@@ -386,7 +386,7 @@ def cli_publish(no_acl_no_owner):
         )
         if confirm:
             logger.success = True
-            questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
+            questionary.print("python3 cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
             questionary.print("Script de publication terminé")
         else:
@@ -438,7 +438,7 @@ def cli_publish(no_acl_no_owner):
                 force=force,
             )
             logger.success = True
-            questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
+            questionary.print("python3 cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
             questionary.print("Script de publication terminé avec succès")
         else:

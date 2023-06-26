@@ -77,7 +77,8 @@ def can_publish_to_dst_server(
             view for view in get_unique_source_views if view not in views
         ]
         for view in views_not_specified:
-            if not SchemaQuerier.schema_view_exists(database_connection, view):
+            if not SchemaQuerier.schema_table_exists(database_connection, view) \
+                  and not SchemaQuerier.schema_view_exists(database_connection, view):
                 schema_errors.insert(0, no_view_table_message(view))
     if len(materialized_views) != 0:
         get_unique_source_mat_views = list(
@@ -103,8 +104,8 @@ def can_publish_to_dst_server(
         if (
             dependent_schema_table_name in tables_not_specified
             and not SchemaQuerier.schema_table_exists(
-                database_connection, dependent_schema_table_name
-            )
+            database_connection, dependent_schema_table_name
+        )
         ):
             # check that table exists in dest
             table_view_errors.insert(
@@ -116,18 +117,18 @@ def can_publish_to_dst_server(
                 ),
             )
     for dep in src_dependencies["views"]:
-        schema_table_name = dep["dependent_schema_table"]
         dependent_schema_table_name = "{}.{}".format(
             dep["dependent_schema"], dep["dependent_table"]
         )
-        # When publishing check that all dep exists
+        # check if schema exists in current publish task
         if dep['dependent_schema'] in schemas:
             continue
+        # When publishing check that all dep exists
         if (
             dependent_schema_table_name in tables_not_specified
             and not SchemaQuerier.schema_table_exists(
-                database_connection, schema_table_name
-            )
+            database_connection, dependent_schema_table_name
+        )
         ):
             table_view_errors.insert(
                 0,
@@ -139,14 +140,14 @@ def can_publish_to_dst_server(
                 ),
             )
         # when republishing, add warning to user that dependencies will be lost
-        else:
+        elif dependent_schema_table_name not in tables_not_specified:
             table_view_warnings.insert(
                 0,
                 "La vue {} du schéma {} dependant de la table {} du schéma {} sera supprimée".format(
                     dep["view"],
-                    dep["dependent_schema"],
-                    dep["dependent_table"],
                     dep["source_schema"],
+                    dep["dependent_table"],
+                    dep["dependent_schema"],
                 ),
             )
     return {
@@ -176,7 +177,7 @@ def no_table_message(table_name: str) -> str:
 
 def no_view_table_message(view_name: str) -> str:
     return (
-        "La table/vue {} ne se trouve pas "
+        "La vue {} ne se trouve pas "
         "sur le serveur de destination, merci de la créer/publier".format(view_name)
     )
 

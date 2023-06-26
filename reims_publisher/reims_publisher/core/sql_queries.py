@@ -127,8 +127,8 @@ def get_view_elements(views: str) -> [dict]:
     schema_name = views[0].split(".")[0]
     joined_views = ", ".join(f"'{view.split('.')[1]}'" for view in views)
     return """
-       WITH RECURSIVE view_dependencies AS (
-  SELECT
+   WITH RECURSIVE view_dependencies AS (
+    SELECT
     'dependent_schema' AS column_name,
     table_schema,
     'source_schema' AS column_name,
