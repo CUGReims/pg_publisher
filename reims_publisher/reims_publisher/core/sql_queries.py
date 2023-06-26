@@ -127,12 +127,12 @@ def get_view_elements(views: str) -> [dict]:
     schema_name = views[0].split(".")[0]
     joined_views = ", ".join(f"'{view.split('.')[1]}'" for view in views)
     return """
-   WITH RECURSIVE view_dependencies AS (
-    SELECT
+       WITH RECURSIVE view_dependencies AS (
+  SELECT
     'dependent_schema' AS column_name,
     table_schema,
     'source_schema' AS column_name,
-    '{}' AS source_schema,
+    '{schema_name}' AS source_schema,
     'dependent_table' AS column_name,
     table_name,
     'dependent_schema_table' AS column_name,
@@ -143,14 +143,14 @@ def get_view_elements(views: str) -> [dict]:
   FROM
     information_schema.view_table_usage
   WHERE
-    view_schema = '{}' AND
-    view_name in ({}) -- Replace with your actual schema and view name
+    view_schema = '{schema_name}' AND
+    view_name in ({joined_views}) -- Replace with your actual schema and view name
   UNION
   SELECT
     'dependent_schema_table' AS column_name,
     vt.table_schema,
     'source_schema' AS column_name,
-    'test_pub_vue' AS source_schema,
+    '{schema_name}' AS source_schema,
     'dependent_table' AS column_name,
     vt.table_name,
     'dependent_schema_table' AS column_name,
@@ -160,10 +160,18 @@ def get_view_elements(views: str) -> [dict]:
   FROM
     view_dependencies vd
     JOIN information_schema.view_table_usage vt ON vd.table_schema = vt.view_schema AND vd.table_name = vt.view_name
-)SELECT * FROM
-  view_dependencies;
+)
+  SELECT
+    vd.*,
+    'table_type',
+    CASE
+        WHEN vd.table_name IS NOT NULL THEN 'table'
+        ELSE 'view'
+    END AS dependent_type
+FROM
+  view_dependencies as vd;
 
 
         """.format(
-        schema_name, schema_name, joined_views
+        schema_name=schema_name, joined_views=joined_views
     )

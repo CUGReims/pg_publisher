@@ -70,8 +70,10 @@ def can_publish_to_dst_server(
             set(
                 val["dependent_schema_table"]
                 for val in src_dependencies["constraints"] + src_dependencies["views"]
+                if val.get("table_type") == "view"
             )
         )
+
         # Add error if table not in current publish task nor in dst server
         views_not_specified = [
             view for view in get_unique_source_views if view not in views
