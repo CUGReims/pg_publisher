@@ -24,6 +24,7 @@ class PublisherLogger:
         self._object_names = None
         self._object_type = None
         self._error_messages = []
+        self.dependences_warning = []
         self.conn = conn
         self.user = os.environ.get("USER", os.environ.get("USERNAME"))  # need
         self.create_logging_schema()  # need
@@ -48,9 +49,10 @@ class PublisherLogger:
                         nom_objets varchar(1000),
                         succes boolean,
                         log_complet varchar(150), --chemin vers fichier de log
-                        messager_erreur varchar(15000),
+                        message_erreur varchar(15000),
                         commande varchar(1500),
-                        publier_depublier varchar(50)
+                        publier_depublier varchar(50),
+                        warning_dependances varchar(15000)
                       );
                     """
                 )
@@ -78,6 +80,18 @@ class PublisherLogger:
     @object_type.setter
     def object_type(self, object_type):
         self._object_type = object_type
+
+    @property
+    def dependences_warning(self):
+        return (
+            ",".join(self._dependences_warning)
+            if self._dependences_warning is not None
+            else None
+        )
+
+    @dependences_warning.setter
+    def dependences_warning(self, dependences_warning):
+        self._dependences_warning = dependences_warning
 
     @property
     def object_names(self):
@@ -130,8 +144,9 @@ class PublisherLogger:
         return cmd_command
 
     def insert_log_row(self):
-        sql = """INSERT INTO logging.logging (utilisateur, src_db_service_name, dst_db_service_name,
-         type_objet, nom_objets, succes, log_complet, messager_erreur, commande, publier_depublier)
+        sql = """INSERT INTO logging.logging (utilisateur, src_db_service_name,
+         dst_db_service_name, type_objet, nom_objets, succes, log_complet,
+         message_erreur, commande, publier_depublier, warning_dependances)
         VALUES (
         '{user}',
         '{src_db}',
@@ -142,7 +157,8 @@ class PublisherLogger:
         '{path_to_log_file}',
         '{error_messages}',
         '{command_pour_publish_cron}',
-        '{publish_type}'
+        '{publish_type}',
+        '{dependences_warning}'
         )""".format(
             user=self.user,
             src_db=self.src_db,
@@ -154,6 +170,7 @@ class PublisherLogger:
             error_messages=",".join(self.error_messages),
             command_pour_publish_cron=self.build_cmd_command(),
             publish_type=self.publish_type,
+            dependences_warning=self.dependences_warning,
         )
         with self.conn:
             with self.conn.cursor() as cursor:

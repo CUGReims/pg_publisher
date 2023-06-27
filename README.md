@@ -70,3 +70,16 @@ pyinstaller --clean ./cli.spec
 
 Now you can rename dist folder to something like `reims_publisher-v0.1.0-alpha2-windows-amd64`
 and create a ZIP archive.
+
+
+## Requirements (pip freeze)
+
+    click==7.1.2
+    pgtoolkit==0.23.0
+    pkg_resources==0.0.0
+    prompt-toolkit==3.0.38
+    psycopg2-binary==2.9.3
+    questionary==1.10.0
+    reims-publisher==0.1.0
+    typing_extensions==4.6.3
+    wcwidth==0.2.6

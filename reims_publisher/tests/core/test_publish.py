@@ -66,28 +66,17 @@ def test_publish_view_missing_schema(
     from reims_publisher.core.publish import publish, PsqlOperationalError
 
     with pytest.raises(PsqlOperationalError) as excinfo:
-        publish(
-            src_conn_string,
-            dst_conn_string,
-            views=["schema.view"],
-        )
+        publish(src_conn_string, dst_conn_string, views=["schema.view"])
     assert 'relation "schema.table" does not exist' in str(excinfo.value)
 
 
 @pytest.mark.usefixtures("src_view")
 def test_publish_view_success(
-    src_conn_string,
-    dst_conn_string,
-    dst_table,
-    src_table,
-    dst_schema,
-    dst_conn,
+    src_conn_string, dst_conn_string, dst_table, src_table, dst_schema, dst_conn
 ):
     from reims_publisher.core.publish import publish
 
-    publish(
-        src_conn_string, dst_conn_string, views=["schema.view"]
-    )
+    publish(src_conn_string, dst_conn_string, views=["schema.view"])
     with dst_conn:
         with dst_conn.cursor() as cursor:
             cursor.execute("SELECT data FROM schema.view WHERE num = 100;")

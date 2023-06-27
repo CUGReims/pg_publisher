@@ -37,7 +37,6 @@ def can_publish_to_dst_server(
             database_connection, schemas
         ):
             schema_dependencies_depublish.append(schema_dependence_message(dep))
-
     schemas_not_specified = [
         schema for schema in get_unique_source_schemas if schema not in schemas
     ]
@@ -60,22 +59,30 @@ def can_publish_to_dst_server(
         if not SchemaQuerier.schema_table_exists(database_connection, table):
             schema_errors.insert(0, no_table_message(table))
         else:
-            schema_warnings.insert(0, has_reference_message(schemas, table))
+            for item in src_dependencies["constraints"]:
+                if item["source_schema_table"] in tables:
+                    schema_warnings.insert(
+                        0, has_reference_message([item["source_schema_table"]], table)
+                    )
 
     if len(views) != 0:
         get_unique_source_views = list(
             set(
                 val["dependent_schema_table"]
                 for val in src_dependencies["constraints"] + src_dependencies["views"]
+                if val.get("table_type") == "view"
             )
         )
+
         # Add error if table not in current publish task nor in dst server
         views_not_specified = [
             view for view in get_unique_source_views if view not in views
         ]
         for view in views_not_specified:
-            if not SchemaQuerier.schema_view_exists(database_connection, view):
-                schema_errors.insert(0, no_view_message(view))
+            if not SchemaQuerier.schema_table_exists(
+                database_connection, view
+            ) and not SchemaQuerier.schema_view_exists(database_connection, view):
+                schema_errors.insert(0, no_view_table_message(view))
     if len(materialized_views) != 0:
         get_unique_source_mat_views = list(
             set(
@@ -113,15 +120,17 @@ def can_publish_to_dst_server(
                 ),
             )
     for dep in src_dependencies["views"]:
-        schema_table_name = dep["dependent_schema_table"]
         dependent_schema_table_name = "{}.{}".format(
             dep["dependent_schema"], dep["dependent_table"]
         )
+        # check if schema exists in current publish task
+        if dep["dependent_schema"] in schemas:
+            continue
         # When publishing check that all dep exists
         if (
             dependent_schema_table_name in tables_not_specified
             and not SchemaQuerier.schema_table_exists(
-                database_connection, schema_table_name
+                database_connection, dependent_schema_table_name
             )
         ):
             table_view_errors.insert(
@@ -134,10 +143,10 @@ def can_publish_to_dst_server(
                 ),
             )
         # when republishing, add warning to user that dependencies will be lost
-        else:
+        elif dependent_schema_table_name not in tables_not_specified:
             table_view_warnings.insert(
                 0,
-                "La vue {} du schéma {} dependant de la table {} du schéma {} sera supprimé. ".format(
+                "La vue {} du schéma {} dependant de la table {} du schéma {} sera supprimée".format(
                     dep["view"],
                     dep["source_schema"],
                     dep["dependent_table"],
@@ -157,27 +166,22 @@ def can_publish_to_dst_server(
 
 
 def no_schema_message(schema_name: str) -> str:
-    return (
-        "Le schema {} ne se trouve pas "
-        "sur le serveur de destination, merci de le créer/publier \n ".format(
-            schema_name
-        )
+    return "Le schema {} ne se trouve pas " "sur le serveur de destination \n ".format(
+        schema_name
     )
 
 
 def no_table_message(table_name: str) -> str:
     return (
         "La table {} ne se trouve pas "
-        "sur le serveur de destination, merci de le créer/publier \n ".format(
-            table_name
-        )
+        "sur le serveur de destination, merci de la créer/publier".format(table_name)
     )
 
 
-def no_view_message(view_name: str) -> str:
+def no_view_table_message(view_name: str) -> str:
     return (
         "La vue {} ne se trouve pas "
-        "sur le serveur de destination, merci de le créer/publier \n ".format(view_name)
+        "sur le serveur de destination, merci de la créer/publier".format(view_name)
     )
 
 
@@ -196,7 +200,16 @@ def schema_dependence_message(dep_tuple: []) -> str:
     )
 
 
-def has_reference_message(schema_names: [str], table_name: str) -> str:
-    return "La table '{}' utilise un objet du/des schéma(s) en cours de publication: {}, ".format(
-        table_name, ",".join(schema_names)
+def has_reference_message(tables: [str], table_name: str) -> str:
+    if len(tables) > 1:
+        return (
+            "Les tables en cours de publication {} font référence à la table {}".format(
+                ", ".join(tables), table_name
+            )
+        )
+
+    return (
+        "La table en cours de publication {} fait référence à une table/vue {}".format(
+            tables[0], table_name
+        )
     )

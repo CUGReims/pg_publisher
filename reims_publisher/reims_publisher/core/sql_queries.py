@@ -19,7 +19,7 @@ def get_schemas_dependencies(schemas: [str]) -> [dict]:
       dependent_view, 'source_schema', source_schema, 'dependent_table', dependent_table,
       'dependent_schema_table', dependent_schema || '.' || dependent_table
     FROM cte
-    WHERE cte.dependent_schema <> cte.source_schema and cte.source_schema in ({});
+    WHERE cte.dependent_schema <> cte.source_schema and cte.dependent_schema in ({});
     """.format(
         joined_schemas
     )
@@ -39,11 +39,12 @@ def get_schemas_fk_constraints(schemas: [str]) -> [dict]:
       JOIN pg_attribute AS la ON la.attrelid = c.conrelid AND la.attnum = c.conkey[1]
       JOIN pg_attribute AS ra ON ra.attrelid = c.confrelid AND ra.attnum = c.confkey[1]
       )
-    SELECT 'source_schema', schemaname::varchar, 'dependent_schema_table', schema_table::varchar,
+    SELECT 'source_schema', schemaname::varchar as schemaname,
+    'dependent_schema_table', schema_table::varchar,
     'source_schema_table', source_schema_table::varchar, 'type_of_constraint',
     referencing_column::varchar, 'dependent_schema', split_part(schema_table::varchar, '.', 1)
     FROM cte
-    WHERE cte.constraint_type = 'f' AND cte.schemaname::varchar in ({})""".format(
+    WHERE cte.constraint_type = 'f' AND schemaname::varchar in ({})""".format(
         joined_schemas
     )
 
@@ -66,7 +67,7 @@ def get_schemas_fk_dependencies(schemas: [str]) -> [dict]:
     'dependent_schema_table', source_schema_table::varchar, 'type_of_constraint',
     referencing_column::varchar, 'dependent_schema', split_part(schema_table::varchar, '.', 1)
     FROM cte
-    WHERE cte.constraint_type = 'f' AND split_part(schema_table::varchar, '.', 1) in ({})""".format(
+    WHERE cte.constraint_type = 'f' AND schemaname::varchar in ({})""".format(
         joined_schemas
     )
 
@@ -97,7 +98,7 @@ def get_tables_fk_dependencies(tables: [str]) -> [dict]:
 
 def get_tables_view_dependencies(tables: [str]) -> [dict]:
     joined_tables = ", ".join(f"'{table}'" for table in tables)
-    return """    WITH cte as (
+    return """WITH cte as (
       SELECT dependent_ns.nspname as dependent_schema,
        dependent_view.relname as dependent_view,
        source_ns.nspname as source_schema,
@@ -119,4 +120,59 @@ def get_tables_view_dependencies(tables: [str]) -> [dict]:
     WHERE cte.dependent_schema <> cte.source_schema and cte.schema_table_name in ({});
     """.format(
         joined_tables
+    )
+
+
+def get_view_elements(views: str) -> [dict]:
+    schema_name = views[0].split(".")[0]
+    joined_views = ", ".join(f"'{view.split('.')[1]}'" for view in views)
+    return """
+       WITH RECURSIVE view_dependencies AS (
+  SELECT
+    'dependent_schema' AS column_name,
+    table_schema,
+    'source_schema' AS column_name,
+    '{schema_name}' AS source_schema,
+    'dependent_table' AS column_name,
+    table_name,
+    'dependent_schema_table' AS column_name,
+    table_schema || '.' || table_name AS dependent_schema_table,
+    'view' AS column_name,
+    view_name
+
+  FROM
+    information_schema.view_table_usage
+  WHERE
+    view_schema = '{schema_name}' AND
+    view_name in ({joined_views}) -- Replace with your actual schema and view name
+  UNION
+  SELECT
+    'dependent_schema_table' AS column_name,
+    vt.table_schema,
+    'source_schema' AS column_name,
+    '{schema_name}' AS source_schema,
+    'dependent_table' AS column_name,
+    vt.table_name,
+    'dependent_schema_table' AS column_name,
+    vt.table_schema || '.' || vt.table_name AS dependent_schema_table,
+    'view' AS column_name,
+    vt.view_name
+  FROM
+    view_dependencies vd
+    JOIN information_schema.view_table_usage vt ON
+    vd.table_schema = vt.view_schema AND vd.table_name = vt.view_name
+)
+  SELECT
+    vd.*,
+    'table_type',
+    CASE
+        WHEN vd.table_name IS NOT NULL THEN 'table'
+        ELSE 'view'
+    END AS dependent_type
+FROM
+  view_dependencies as vd;
+
+
+        """.format(
+        schema_name=schema_name, joined_views=joined_views
     )
