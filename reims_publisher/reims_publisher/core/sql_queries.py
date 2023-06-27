@@ -159,7 +159,8 @@ def get_view_elements(views: str) -> [dict]:
     vt.view_name
   FROM
     view_dependencies vd
-    JOIN information_schema.view_table_usage vt ON vd.table_schema = vt.view_schema AND vd.table_name = vt.view_name
+    JOIN information_schema.view_table_usage vt ON
+    vd.table_schema = vt.view_schema AND vd.table_name = vt.view_name
 )
   SELECT
     vd.*,

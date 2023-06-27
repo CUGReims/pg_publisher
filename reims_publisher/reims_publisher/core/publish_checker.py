@@ -79,8 +79,9 @@ def can_publish_to_dst_server(
             view for view in get_unique_source_views if view not in views
         ]
         for view in views_not_specified:
-            if not SchemaQuerier.schema_table_exists(database_connection, view) \
-                  and not SchemaQuerier.schema_view_exists(database_connection, view):
+            if not SchemaQuerier.schema_table_exists(
+                database_connection, view
+            ) and not SchemaQuerier.schema_view_exists(database_connection, view):
                 schema_errors.insert(0, no_view_table_message(view))
     if len(materialized_views) != 0:
         get_unique_source_mat_views = list(
@@ -106,8 +107,8 @@ def can_publish_to_dst_server(
         if (
             dependent_schema_table_name in tables_not_specified
             and not SchemaQuerier.schema_table_exists(
-            database_connection, dependent_schema_table_name
-        )
+                database_connection, dependent_schema_table_name
+            )
         ):
             # check that table exists in dest
             table_view_errors.insert(
@@ -123,14 +124,14 @@ def can_publish_to_dst_server(
             dep["dependent_schema"], dep["dependent_table"]
         )
         # check if schema exists in current publish task
-        if dep['dependent_schema'] in schemas:
+        if dep["dependent_schema"] in schemas:
             continue
         # When publishing check that all dep exists
         if (
             dependent_schema_table_name in tables_not_specified
             and not SchemaQuerier.schema_table_exists(
-            database_connection, dependent_schema_table_name
-        )
+                database_connection, dependent_schema_table_name
+            )
         ):
             table_view_errors.insert(
                 0,
