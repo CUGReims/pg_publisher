@@ -67,20 +67,20 @@ def main():
     schemas = tables = views = mat_views = []
 
     if args.Schemas:
-        schemas = args.Schemas.split(",")
+        schemas = args.Schemas.split(";")
         logger.object_names = schemas
         logger.object_type = "schemas"
     elif args.Tables:
         tables = args.Tables
-        logger.object_names = tables.split(",")
+        logger.object_names = tables.split(";")
         logger.object_type = "tables"
     elif args.Views:
         views = args.Views
-        logger.object_names = views.split(",")
+        logger.object_names = views.split(";")
         logger.object_type = "views"
     else:
         mat_views = args.MatViews
-        logger.object_names = mat_views.split(",")
+        logger.object_names = mat_views.split(";")
         logger.object_type = "materialized_views"
 
     if args.Type == "publication" or args.Type == "publication_with_acl_owner":

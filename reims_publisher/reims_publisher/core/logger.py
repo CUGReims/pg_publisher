@@ -95,7 +95,7 @@ class PublisherLogger:
 
     @property
     def object_names(self):
-        return ",".join(self._object_names) if self._object_names is not None else None
+        return ";".join(self._object_names) if self._object_names is not None else None
 
     @object_names.setter
     def object_names(self, object_names):
