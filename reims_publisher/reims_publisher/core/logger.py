@@ -95,7 +95,7 @@ class PublisherLogger:
 
     @property
     def object_names(self):
-        return ",".join(self._object_names) if self._object_names is not None else None
+        return ";".join(self._object_names) if self._object_names is not None else None
 
     @object_names.setter
     def object_names(self, object_names):
@@ -132,13 +132,13 @@ class PublisherLogger:
             self.publish_type, self.src_db, self.dst_db
         )
         if self.object_type == "schemas":
-            cmd_command += "-s={}".format(self.object_names)
+            cmd_command += '-s="{}"'.format(self.object_names)
         elif self.object_type == "tables":
-            cmd_command += "-s={}".format(self.object_names)
+            cmd_command += '-t="{}"'.format(self.object_names)
         elif self.object_type == "views":
-            cmd_command += "-v={}".format(self.object_names)
+            cmd_command += '-v="{}"'.format(self.object_names)
         elif self.object_type == "materialized_views":
-            cmd_command += "-mv={}".format(self.object_names)
+            cmd_command += '-mv="{}"'.format(self.object_names)
         else:
             raise Exception("object_type is not valid: {}".format(self.object_type))
         return cmd_command
