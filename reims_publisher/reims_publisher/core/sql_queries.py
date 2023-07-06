@@ -15,8 +15,8 @@ def get_schemas_dependencies(schemas: [str]) -> [dict]:
       JOIN pg_namespace dependent_ns ON dependent_ns.oid = dependent_view.relnamespace
       JOIN pg_namespace source_ns ON source_ns.oid = source_table.relnamespace
     )
-    SELECT DISTINCT 'dependent_schema', dependent_schema, 'view',
-      dependent_view, 'source_schema', source_schema, 'dependent_table', dependent_table,
+    SELECT DISTINCT 'dependent_schema', source_schema, 'view',
+      dependent_view, 'source_schema', dependent_schema, 'dependent_table', dependent_table,
       'dependent_schema_table', dependent_schema || '.' || dependent_table
     FROM cte
     WHERE cte.dependent_schema <> cte.source_schema and cte.dependent_schema in ({});
