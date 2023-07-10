@@ -62,7 +62,7 @@ def main():
     )
 
     logger = PublisherLogger(dst_conn)
-    logger.src_db = service_db_dst
+    logger.src_db = service_db_src
     logger.dst_db = service_db_dst
     schemas = tables = views = mat_views = []
 

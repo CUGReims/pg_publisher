@@ -11,20 +11,21 @@ def test_schema_querier_get_schema_dependencies(views, dst_conn):
     views = dependencies["views"]
     constraints = dependencies["constraints"]
     assert len(constraints) == 0
+
     assert views == [
         {
             "dependent_schema": "schema1",
-            "view": "view1",
+            "view": "view2",
             "source_schema": "schema2",
             "dependent_table": "table1",
-            "dependent_schema_table": "schema1.table1",
+            "dependent_schema_table": "schema2.table1",
         },
         {
             "dependent_schema": "schema2",
-            "view": "view2",
+            "view": "view1",
             "source_schema": "schema1",
             "dependent_table": "table1",
-            "dependent_schema_table": "schema2.table1",
+            "dependent_schema_table": "schema1.table1",
         },
     ]
 
