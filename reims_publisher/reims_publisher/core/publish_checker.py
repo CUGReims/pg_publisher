@@ -202,14 +202,10 @@ def schema_dependence_message(dep_tuple: []) -> str:
 
 def has_reference_message(tables: [str], table_name: str) -> str:
     if len(tables) > 1:
-        return (
-            "Les tables en cours de publication {} font référence à la table {}".format(
-                ", ".join(tables), table_name
-            )
+        return "Les tables en cours de publication {} font référence à la table {}".format(
+            ", ".join(tables), table_name
         )
 
-    return (
-        "La table en cours de publication {} fait référence à une table/vue {}".format(
-            tables[0], table_name
-        )
+    return "La table en cours de publication {} fait référence à une table/vue {}".format(
+        tables[0], table_name
     )
