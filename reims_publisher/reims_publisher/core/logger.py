@@ -24,7 +24,8 @@ class PublisherLogger:
         self._object_names = None
         self._object_type = None
         self._error_messages = []
-        self.dependences_warning = []
+        self._dependences_warning = []
+        self._view_dependences = []
         self.conn = conn
         self.user = os.environ.get("USER", os.environ.get("USERNAME"))  # need
         self.create_logging_schema()  # need
@@ -52,7 +53,8 @@ class PublisherLogger:
                         message_erreur varchar(15000),
                         commande varchar(1500),
                         publier_depublier varchar(50),
-                        warning_dependances varchar(15000)
+                        warning_dependances varchar(15000),
+                        vues_dependante varchar(10000)
                       );
                     """
                 )
@@ -84,7 +86,7 @@ class PublisherLogger:
     @property
     def dependences_warning(self):
         return (
-            ",".join(self._dependences_warning)
+            ";".join(self._dependences_warning)
             if self._dependences_warning is not None
             else None
         )
@@ -92,6 +94,18 @@ class PublisherLogger:
     @dependences_warning.setter
     def dependences_warning(self, dependences_warning):
         self._dependences_warning = dependences_warning
+
+    @property
+    def view_dependences(self):
+        return (
+            ";".join(self._view_dependences)
+            if self._view_dependences is not None
+            else None
+        )
+
+    @view_dependences.setter
+    def view_dependences(self, view_dependences):
+        self._view_dependences = view_dependences
 
     @property
     def object_names(self):
@@ -146,7 +160,7 @@ class PublisherLogger:
     def insert_log_row(self):
         sql = """INSERT INTO logging.logging (utilisateur, src_db_service_name,
          dst_db_service_name, type_objet, nom_objets, succes, log_complet,
-         message_erreur, commande, publier_depublier, warning_dependances)
+         message_erreur, commande, publier_depublier, warning_dependances, vues_dependante)
         VALUES (
         '{user}',
         '{src_db}',
@@ -158,7 +172,8 @@ class PublisherLogger:
         '{error_messages}',
         '{command_pour_publish_cron}',
         '{publish_type}',
-        '{dependences_warning}'
+        '{dependences_warning}',
+        '{view_dependences}'
         )""".format(
             user=self.user,
             src_db=self.src_db,
@@ -171,6 +186,7 @@ class PublisherLogger:
             command_pour_publish_cron=self.build_cmd_command(),
             publish_type=self.publish_type,
             dependences_warning=self.dependences_warning,
+            view_dependences=self.view_dependences,
         )
         with self.conn:
             with self.conn.cursor() as cursor:

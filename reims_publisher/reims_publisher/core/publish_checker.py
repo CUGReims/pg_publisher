@@ -25,6 +25,7 @@ def can_publish_to_dst_server(
     schema_dependencies_depublish = []
     table_view_errors = []
     table_view_warnings = []
+    table_view_dependents = []
     # Keep only schemas that aren't referenced in current publish task
     get_unique_source_schemas = list(
         set(
@@ -61,6 +62,7 @@ def can_publish_to_dst_server(
         else:
             for item in src_dependencies["constraints"]:
                 if item["source_schema_table"] in tables:
+                    table_view_dependents.append(item["source_schema_table"])
                     schema_warnings.insert(
                         0, has_reference_message([item["source_schema_table"]], table)
                     )
@@ -162,6 +164,7 @@ def can_publish_to_dst_server(
         "schema_dependencies_depublish": schema_dependencies_depublish,
         "table_view_errors": list(set(table_view_errors)),
         "table_view_warnings": list(set(table_view_warnings)),
+        "table_view_dependents": table_view_dependents,
     }
 
 
@@ -202,10 +205,14 @@ def schema_dependence_message(dep_tuple: []) -> str:
 
 def has_reference_message(tables: [str], table_name: str) -> str:
     if len(tables) > 1:
-        return "Les tables en cours de publication {} font référence à la table {}".format(
-            ", ".join(tables), table_name
+        return (
+            "Les tables en cours de publication {} font référence à la table {}".format(
+                ", ".join(tables), table_name
+            )
         )
 
-    return "La table en cours de publication {} fait référence à une table/vue {}".format(
-        tables[0], table_name
+    return (
+        "La table en cours de publication {} fait référence à une table/vue {}".format(
+            tables[0], table_name
+        )
     )

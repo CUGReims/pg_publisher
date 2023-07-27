@@ -707,14 +707,19 @@ def main_schema_process(conn_src, conn_dst, logger) -> dict:
         )
 
     dependences_warning = []
-    if 'schema_warnings' in schemas_dependencies:
+    if "schema_warnings" in schemas_dependencies:
         dependences_warning.append(schemas_dependencies["schema_warnings"])
-    if 'schema_dependencies_depublish' in schemas_dependencies:
-        dependences_warning.append(schemas_dependencies["schema_dependencies_depublish"])
-    if 'table_view_warnings' in schemas_dependencies:
+    if "schema_dependencies_depublish" in schemas_dependencies:
+        dependences_warning.append(
+            schemas_dependencies["schema_dependencies_depublish"]
+        )
+    if "table_view_warnings" in schemas_dependencies:
         dependences_warning.append(schemas_dependencies["table_view_warnings"])
 
-    logger.dependences_warning = [item for sublist in dependences_warning for item in sublist]
+    logger.dependences_warning = [
+        item for sublist in dependences_warning for item in sublist
+    ]
+    logger.view_dependences = schemas_dependencies["table_view_dependents"]
 
     if not schemas_dependencies["can_publish"]:
         for schema_dep_error in (
