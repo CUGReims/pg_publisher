@@ -25,6 +25,7 @@ def can_publish_to_dst_server(
     schema_dependencies_depublish = []
     table_view_errors = []
     table_view_warnings = []
+    table_view_dependents = []
     # Keep only schemas that aren't referenced in current publish task
     get_unique_source_schemas = list(
         set(
@@ -61,6 +62,7 @@ def can_publish_to_dst_server(
         else:
             for item in src_dependencies["constraints"]:
                 if item["source_schema_table"] in tables:
+                    table_view_dependents.append(item["source_schema_table"])
                     schema_warnings.insert(
                         0, has_reference_message([item["source_schema_table"]], table)
                     )
@@ -162,6 +164,7 @@ def can_publish_to_dst_server(
         "schema_dependencies_depublish": schema_dependencies_depublish,
         "table_view_errors": list(set(table_view_errors)),
         "table_view_warnings": list(set(table_view_warnings)),
+        "table_view_dependents": table_view_dependents,
     }
 
 
