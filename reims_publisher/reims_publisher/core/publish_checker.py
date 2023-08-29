@@ -56,13 +56,18 @@ def can_publish_to_dst_server(
     tables_not_specified = [
         table for table in get_unique_source_tables if table not in tables
     ]
+    if tables:
+        for view_info in src_dependencies["views"]:
+            table_view_dependents.append(
+                "{}.{}".format(view_info["dependent_schema"], view_info["view"])
+            )
+
     for table in tables_not_specified:
         if not SchemaQuerier.schema_table_exists(database_connection, table):
             schema_errors.insert(0, no_table_message(table))
         else:
             for item in src_dependencies["constraints"]:
                 if item["source_schema_table"] in tables:
-                    table_view_dependents.append(item["source_schema_table"])
                     schema_warnings.insert(
                         0, has_reference_message([item["source_schema_table"]], table)
                     )
@@ -146,15 +151,19 @@ def can_publish_to_dst_server(
             )
         # when republishing, add warning to user that dependencies will be lost
         elif dependent_schema_table_name not in tables_not_specified:
-            table_view_warnings.insert(
-                0,
-                "La vue {} du schéma {} dependant de la table {} du schéma {} sera supprimée".format(
-                    dep["view"],
-                    dep["source_schema"],
-                    dep["dependent_table"],
-                    dep["dependent_schema"],
-                ),
-            )
+            # if schema is not present then no need to log the error
+            if not SchemaQuerier.schema_exists(
+                database_connection, dep["dependent_schema"]
+            ):
+                table_view_warnings.insert(
+                    0,
+                    "La vue {} du schéma {} dependant de la table {} du schéma {} sera supprimée".format(
+                        dep["view"],
+                        dep["source_schema"],
+                        dep["dependent_table"],
+                        dep["dependent_schema"],
+                    ),
+                )
     return {
         "can_publish": True
         if len(schema_errors) == 0 and len(table_view_errors) == 0

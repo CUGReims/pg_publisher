@@ -98,6 +98,7 @@ def cli_depublish():
         ).ask()
         if confirm:
             depublish(dst_conn_string, schemas=process["schemas"], force=force)
+            logger.success = True
             questionary.print("cli_direct.py {}".format(logger.build_cmd_command()))
             logger.insert_log_row()
             questionary.print("Script de dépublication terminé")
@@ -804,7 +805,10 @@ def main(verbose):
 
 if __name__ == "__main__":
     try:
-        sys.exit(main())  # pragma: no cover
+        main()
+        questionary.text("Appuyez sur la touche Entrée pour sortir.").ask()
+        sys.exit(1)
+
     except Exception as e:
         LOG.exception(str(e), exc_info=True)
 

@@ -71,18 +71,17 @@ def main():
         logger.object_names = schemas
         logger.object_type = "schemas"
     elif args.Tables:
-        tables = args.Tables
-        logger.object_names = tables.split(";")
+        tables = args.Tables.split(";")
+        logger.object_names = tables
         logger.object_type = "tables"
     elif args.Views:
-        views = args.Views
-        logger.object_names = views.split(";")
+        views = args.Views.split(";")
+        logger.object_names = views
         logger.object_type = "views"
     else:
-        mat_views = args.MatViews
-        logger.object_names = mat_views.split(";")
+        mat_views = args.MatViews.split(";")
+        logger.object_names = mat_views
         logger.object_type = "materialized_views"
-
     if args.Type == "publication" or args.Type == "publication_with_acl_owner":
         no_acl_no_owner = False
         if args.Type == "publication_with_acl_owner":
@@ -101,7 +100,8 @@ def main():
                 no_acl_no_owner=no_acl_no_owner,
             )
             logger.success = True
-        except Exception:
+        except Exception as e:
+            print(e)
             logger.success = False
         finally:
             logger.insert_log_row()
@@ -109,7 +109,6 @@ def main():
         logger.publish_or_depublish = "depublication"
         try:
             depublish(
-                src_conn_string,
                 dst_conn_string,
                 schemas=schemas,
                 tables=tables,
@@ -118,7 +117,8 @@ def main():
                 force=True,
             )
             logger.success = True
-        except Exception:
+        except Exception as e:
+            print(e)
             logger.success = False
         finally:
             logger.insert_log_row()
