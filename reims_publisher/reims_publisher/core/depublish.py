@@ -26,6 +26,7 @@ def depublish(
                 receiver.stdin.write(sql_query)
         if tables:
             for table in tables:
+
                 sql_query = (
                     "DROP TABLE IF EXISTS {} CASCADE;".format(table).encode("utf8")
                     if force
