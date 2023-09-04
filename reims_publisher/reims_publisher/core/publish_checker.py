@@ -152,7 +152,7 @@ def can_publish_to_dst_server(
         # when republishing, add warning to user that dependencies will be lost
         elif dependent_schema_table_name not in tables_not_specified:
             # if schema is not present then no need to log the error
-            if not SchemaQuerier.schema_exists(
+            if SchemaQuerier.schema_exists(
                 database_connection, dep["dependent_schema"]
             ):
                 table_view_warnings.insert(
