@@ -159,9 +159,9 @@ def can_publish_to_dst_server(
                     0,
                     "La vue {} du schéma {} dependant de la table {} du schéma {} sera supprimée".format(
                         dep["view"],
-                        dep["source_schema"],
-                        dep["dependent_table"],
                         dep["dependent_schema"],
+                        dep["dependent_table"],
+                        dep["source_schema"],
                     ),
                 )
     return {
