@@ -801,12 +801,11 @@ def main(verbose):
         cli_depublish()
     elif response is None:
         return
-
+    questionary.text("Appuyez sur la touche Entrée pour sortir.").ask()
 
 if __name__ == "__main__":
     try:
         main()
-        questionary.text("Appuyez sur la touche Entrée pour sortir.").ask()
         sys.exit(1)
 
     except Exception as e:
