@@ -791,7 +791,7 @@ def main(verbose):
 
     response = questionary.select(
         "Que souhaitez vous faire ?",
-        choices=["Publier", "Publier avec les droits", "Dépuplier"],
+        choices=["Publier", "Publier avec les droits", "Dépublier"],
     ).ask()
     if response == "Publier":
         cli_publish(True)
@@ -801,12 +801,12 @@ def main(verbose):
         cli_depublish()
     elif response is None:
         return
+    questionary.text("Appuyez sur la touche Entrée pour sortir.").ask()
 
 
 if __name__ == "__main__":
     try:
         main()
-        questionary.text("Appuyez sur la touche Entrée pour sortir.").ask()
         sys.exit(1)
 
     except Exception as e:
