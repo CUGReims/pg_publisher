@@ -791,7 +791,7 @@ def main(verbose):
 
     response = questionary.select(
         "Que souhaitez vous faire ?",
-        choices=["Publier", "Publier avec les droits", "Dépuplier"],
+        choices=["Publier", "Publier avec les droits", "Dépublier"],
     ).ask()
     if response == "Publier":
         cli_publish(True)
