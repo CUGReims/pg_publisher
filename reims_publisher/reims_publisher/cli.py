@@ -797,7 +797,7 @@ def main(verbose):
         cli_publish(True)
     elif response == "Publier avec les droits":
         cli_publish(False)
-    elif response == "Dépuplier":
+    elif response == "Dépublier":
         cli_depublish()
     elif response is None:
         return
