@@ -50,7 +50,7 @@ tests-debug: ## Run automated tests
 	docker compose exec -T --user `id -u`:`id -g` tester pytest --trace -vv /src/tests
 
 tests: ## Run automated tests
-	docker compose exec -T --user `id -u`:`id -g` tester pytest /src/tests
+	docker compose exec -T --user `id -u`:`id -g` tester pytest -vv --color=yes /src/tests
 
 clean: ## Stop composition, remove containers and images
 	docker compose down -v -t1 --remove-orphans

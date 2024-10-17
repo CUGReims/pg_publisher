@@ -33,17 +33,17 @@ def publish(
     no_acl_no_owner: Optional[bool] = False,
     force: Optional[bool] = True,
 ):
-    with open(LOG_FILE_PATH, "a") as f:
+    with open(LOG_FILE_PATH, "a") as log_file:
         receiver = subprocess.Popen(
             ["psql", "--single-transaction", dst_conn_string],
             stdin=subprocess.PIPE,
-            stdout=f,
+            stdout=log_file,
             stderr=subprocess.STDOUT,
             encoding="utf8",
         )
-
         receiver.stdin.write("\\set ON_ERROR_STOP on\n")
         receiver.stdin.flush()
+
         dump_command = ["pg_dump"]
         if no_acl_no_owner:
             dump_command.append("-Ox")
@@ -59,9 +59,6 @@ def publish(
                 receiver.stdin.flush()
             dump_command += [arg for schema in schemas for arg in ["-n", schema]]
             dump_command += [src_conn_string]
-            LOG.info("Running dump command: %s", dump_command)
-            emitter = subprocess.Popen(dump_command, stdout=receiver.stdin, stderr=f)
-            emitter.communicate()
 
         if tables:
             for table in tables:
@@ -74,9 +71,6 @@ def publish(
                 receiver.stdin.flush()
             dump_command += [arg for table in tables for arg in ["-t", table]]
             dump_command += [src_conn_string]
-            LOG.info("Running dump command: %s", dump_command)
-            emitter = subprocess.Popen(dump_command, stdout=receiver.stdin, stderr=f)
-            emitter.communicate()
 
         if views:
             for view in views or []:
@@ -89,9 +83,6 @@ def publish(
                 receiver.stdin.flush()
             dump_command += [arg for view in views for arg in ["-t", view]]
             dump_command += [src_conn_string]
-            LOG.info("Running dump command: %s", dump_command)
-            emitter = subprocess.Popen(dump_command, stdout=receiver.stdin, stderr=f)
-            emitter.communicate()
 
         if materialized_views:
             for mat_view in materialized_views or []:
@@ -106,11 +97,17 @@ def publish(
                 arg for mat_view in materialized_views for arg in ["-t", mat_view]
             ]
             dump_command += [src_conn_string]
-            LOG.info("Running dump command: %s", dump_command)
-            emitter = subprocess.Popen(dump_command, stdout=receiver.stdin, stderr=f)
-            emitter.communicate()
 
-        receiver.communicate()
+        LOG.info("Running dump command: %s", dump_command)
+        emitter = subprocess.Popen(dump_command, stdout=receiver.stdin, stderr=log_file)
+        cancelled = False
+        emitter.communicate()
+        if emitter.returncode != 0:
+            cancelled = True
+            receiver.stdin.write("ROLLBACK;\n")
+            receiver.stdin.flush()
+        receiver.stdin.close()
+        receiver.wait()
 
     error_message = ""
     error_found = False
@@ -118,14 +115,21 @@ def publish(
         for line in f:
             if "ERROR:" in line:
                 error_found = True
-            if error_found:
                 error_message += line
     if error_found:
         error_message = str(
             error_message[error_message.rindex("ERROR:") :]  # noqa
         )  # keep last ERROR only
+
+    emitter_returncode = emitter.returncode
+    if emitter_returncode != 0:
+        raise PsqlOperationalError(
+            f"La sauvegarde a échouée: {error_message}"
+            + ("\nLa transaction a été annulée." if cancelled else "")
+        )
+
     returncode = receiver.returncode
-    if returncode == 0:
+    if returncode == 0:  # success
         return
     if returncode == 1:
         raise PsqlFatalError(f"Erreur fatale: {error_message}")
