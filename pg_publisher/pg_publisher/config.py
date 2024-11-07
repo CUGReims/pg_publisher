@@ -9,7 +9,7 @@ def get_config():
         application_path = os.path.dirname(sys.executable)
         config_path = os.path.join(application_path, "conf.ini")
     else:
-        config_path = resource_filename("reims_publisher", "conf.ini")
+        config_path = resource_filename("pg_publisher", "conf.ini")
 
     config = configparser.ConfigParser()
     config.read(config_path)

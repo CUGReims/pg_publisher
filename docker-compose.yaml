@@ -1,5 +1,3 @@
-version: '3.8'
-
 volumes:
   src_postgresql_data:
   dst_postgresql_data:
@@ -34,17 +32,17 @@ services:
       -c log_statement=all
 
   publisher:
-    image: camptocamp/reims_publisher:latest
+    image: camptocamp/pg_publisher:latest
     volumes:
-      - ./reims_publisher/reims_publisher:/app/reims_publisher
+      - ./pg_publisher/pg_publisher:/app/pg_publisher
     command: 'sh -c "exit 0"'
 
   tester:
-    image: camptocamp/reims_publisher:latest
+    image: camptocamp/pg_publisher:latest
     env_file:
       - .env
     volumes:
-      - ./reims_publisher/reims_publisher:/app/reims_publisher
-      - ./reims_publisher:/src
+      - ./pg_publisher/pg_publisher:/app/pg_publisher
+      - ./pg_publisher:/src
       - ./.pg_service.conf:/app/.pg_service.conf
     command: sleep infinity

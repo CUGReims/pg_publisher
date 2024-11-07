@@ -1,4 +1,4 @@
-Welcome to Reims Publisher's documentation!
+Welcome to pgpublisher's documentation!
 ======================================
 
 .. toctree::

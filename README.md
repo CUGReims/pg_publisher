@@ -53,7 +53,7 @@ Create a git tag first then:
 make package
 ```
 
-Which will create the file named `reims_publisher-$(TAG)-linux-amd64.tar.gz`.
+Which will create the file named `pg_publisher-$(TAG)-linux-amd64.tar.gz`.
 
 ### For Windows
 
@@ -63,12 +63,12 @@ Comment psycopg2-binary in requirements.txt, then:
 pip install pipwin
 pipwin install psycopg2
 
-cd reims_publisher
+cd pg_publisher
 pip install -e .
 pyinstaller --clean ./cli.spec
 ```
 
-Now you can rename dist folder to something like `reims_publisher-v0.1.0-alpha2-windows-amd64`
+Now you can rename dist folder to something like `pg_publisher-v0.1.0-alpha2-windows-amd64`
 and create a ZIP archive.
 
 
@@ -80,6 +80,6 @@ and create a ZIP archive.
     prompt-toolkit==3.0.38
     psycopg2-binary==2.9.3
     questionary==1.10.0
-    reims-publisher==0.1.0
+    pgpublisher-publisher==0.1.0
     typing_extensions==4.6.3
     wcwidth==0.2.6

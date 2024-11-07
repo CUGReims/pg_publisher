@@ -1,5 +1,5 @@
 ===============
-Reims Publisher
+pgpublisher
 ===============
 
 

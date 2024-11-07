@@ -1,5 +1,5 @@
 def test_logger_insert_row_publish_fail(dst_conn):
-    from reims_publisher.core.logger import PublisherLogger
+    from pg_publisher.core.logger import PublisherLogger
 
     logger = PublisherLogger(dst_conn)
     logger.object_type = "schemas"
@@ -12,7 +12,7 @@ def test_logger_insert_row_publish_fail(dst_conn):
 
 
 def test_logger_insert_row_publish_success(dst_conn):
-    from reims_publisher.core.logger import PublisherLogger
+    from pg_publisher.core.logger import PublisherLogger
 
     logger = PublisherLogger(dst_conn)
     logger.success = True

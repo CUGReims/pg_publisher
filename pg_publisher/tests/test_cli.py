@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-"""Tests for `reims_publisher` package."""
+"""Tests for `pg_publisher` package."""
 
 import pytest
 
 from click.testing import CliRunner
 
-from reims_publisher import cli
+from pg_publisher import cli
 
 
 @pytest.fixture
@@ -30,7 +30,7 @@ def test_command_line_interface():
     # runner = CliRunner()
     # result = runner.invoke(cli.main)
     # assert result.exit_code == 0
-    # assert "reims_publisher.cli.main" in result.output
+    # assert "pg_publisher.cli.main" in result.output
     # help_result = runner.invoke(cli.main, ["--help"])
     # assert help_result.exit_code == 0
     # assert "--help  Show this message and exit." in help_result.output

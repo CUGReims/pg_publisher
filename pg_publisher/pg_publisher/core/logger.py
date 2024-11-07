@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from reims_publisher.config import get_config
+from pg_publisher.config import get_config
 
 config = get_config()
 
