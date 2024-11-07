@@ -9,7 +9,7 @@ another.
 ### Prerequisites
 
 To use in development:
-- Requires docker and docker-compose
+- Requires docker
 
 To use the standalone executable:
 - you will need to have psql installed on your machine.

@@ -27,7 +27,7 @@ jobs:
       - name: Docker compose logs
         if: ${{ always() }}
         run: |
-          docker-compose logs
+          docker compose logs
 
       - name: Clean
         run: make clean
