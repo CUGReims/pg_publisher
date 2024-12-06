@@ -2,6 +2,6 @@
 Usage
 =====
 
-To use Reims Publisher in a project::
+To use pgpublisher in a project::
 
-    import reims_publisher
+    import pg_publisher

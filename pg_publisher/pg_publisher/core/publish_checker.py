@@ -1,5 +1,5 @@
 from typing import List, Optional
-from reims_publisher.core.information_schema import SchemaQuerier
+from pg_publisher.core.information_schema import SchemaQuerier
 
 
 def can_publish_to_dst_server(

@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=reims_publisher
+set SPHINXPROJ=pg_publisher
 
 if "%1" == "" goto help
 

@@ -1,18 +1,18 @@
-"""Console script for reims_publisher."""
+"""Console script for pg_publisher."""
 import sys
 import click
 import questionary
 import logging
-from reims_publisher.core.database_manager import (
+from pg_publisher.core.database_manager import (
     get_services,
     get_conn_string_from_service_name,
 )
-from reims_publisher.check_cli_dependencies import run_check_dependencies
-from reims_publisher.core.information_schema import SchemaQuerier
-from reims_publisher.core.publish_checker import can_publish_to_dst_server
-from reims_publisher.core.publish import publish
-from reims_publisher.core.depublish import depublish
-from reims_publisher.core.logger import LOG_FILE_PATH, PublisherLogger
+from pg_publisher.check_cli_dependencies import run_check_dependencies
+from pg_publisher.core.information_schema import SchemaQuerier
+from pg_publisher.core.publish_checker import can_publish_to_dst_server
+from pg_publisher.core.publish import publish
+from pg_publisher.core.depublish import depublish
+from pg_publisher.core.logger import LOG_FILE_PATH, PublisherLogger
 from psycopg2 import connect
 
 LOG = logging.getLogger(__name__)

@@ -2,7 +2,7 @@ include CONTRIBUTING.rst
 include HISTORY.rst
 include LICENSE
 include README.rst
-include reims_publisher/*.ini
+include pg_publisher/*.ini
 
 recursive-include tests *
 recursive-exclude * __pycache__

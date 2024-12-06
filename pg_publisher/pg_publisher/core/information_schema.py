@@ -1,7 +1,7 @@
 from typing import List
 
-from reims_publisher.config import get_config
-from reims_publisher.core.sql_queries import (
+from pg_publisher.config import get_config
+from pg_publisher.core.sql_queries import (
     get_schemas_dependencies,
     get_tables_view_dependencies,
     get_tables_fk_dependencies,

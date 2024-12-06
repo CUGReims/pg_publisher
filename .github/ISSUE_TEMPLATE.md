@@ -1,4 +1,4 @@
-* Reims Publisher version:
+* pgpublisher version:
 * Python version:
 * Operating System:
 

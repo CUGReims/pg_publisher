@@ -1,4 +1,4 @@
-"""Top-level package for Reims Publisher."""
+"""Top-level package for pgpublisher."""
 
 __author__ = """Camptocamp"""
 __email__ = "info@camptocamp.com"

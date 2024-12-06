@@ -1,10 +1,10 @@
 import argparse
 import logging
 import sys
-from reims_publisher.core.publish import publish
-from reims_publisher.core.depublish import depublish
-from reims_publisher.core.logger import LOG_FILE_PATH, PublisherLogger
-from reims_publisher.core.database_manager import get_conn_string_from_service_name
+from pg_publisher.core.publish import publish
+from pg_publisher.core.depublish import depublish
+from pg_publisher.core.logger import LOG_FILE_PATH, PublisherLogger
+from pg_publisher.core.database_manager import get_conn_string_from_service_name
 from psycopg2 import connect
 
 LOG = logging.getLogger(__name__)

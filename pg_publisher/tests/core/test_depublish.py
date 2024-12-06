@@ -3,7 +3,7 @@ import pytest
 
 @pytest.mark.usefixtures("dst_schema")
 def test_publish_schema_success(dst_conn_string, dst_table, dst_conn):
-    from reims_publisher.core.depublish import depublish
+    from pg_publisher.core.depublish import depublish
 
     depublish(dst_conn_string, schemas=["schema"])
 
@@ -22,7 +22,7 @@ def test_publish_schema_success(dst_conn_string, dst_table, dst_conn):
 @pytest.mark.usefixtures("dst_schema")
 @pytest.mark.usefixtures("dst_table")
 def test_depublish_table_success(dst_conn_string, dst_table, dst_schema, dst_conn):
-    from reims_publisher.core.depublish import depublish
+    from pg_publisher.core.depublish import depublish
 
     depublish(dst_conn_string, tables=["schema.table"])
 

@@ -1,7 +1,7 @@
 import subprocess
 from typing import List, Optional
 
-from reims_publisher.core.logger import LOG_FILE_PATH
+from pg_publisher.core.logger import LOG_FILE_PATH
 
 
 def depublish(

@@ -48,9 +48,9 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache
 
 lint/flake8: ## check style with flake8
-	flake8 reims_publisher tests
+	flake8 pg_publisher tests
 lint/black: ## check style with black
-	black --check reims_publisher tests
+	black --check pg_publisher tests
 
 lint: lint/flake8 lint/black ## check style
 
@@ -61,15 +61,15 @@ test-all: ## run tests on every Python version with tox
 	tox
 
 coverage: ## check code coverage quickly with the default Python
-	coverage run --source reims_publisher -m pytest
+	coverage run --source pg_publisher -m pytest
 	coverage report -m
 	coverage html
 	$(BROWSER) htmlcov/index.html
 
 docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/reims_publisher.rst
+	rm -f docs/pg_publisher.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ reims_publisher
+	sphinx-apidoc -o docs/ pg_publisher
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	$(BROWSER) docs/_build/html/index.html
