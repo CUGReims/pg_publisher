@@ -1,0 +1,24 @@
+{
+    "Servers": {
+        "1": {
+            "Name": "src_db",
+            "Group": "Servers",
+            "Host": "src_db",
+            "Port": 5432,
+            "MaintenanceDB": "pgpublisher",
+            "Username": "pgpublisher",
+            "SSLMode": "disable",
+            "PassFile": "/pgpassfile"
+        },
+        "2": {
+            "Name": "dst_db",
+            "Group": "Servers",
+            "Host": "dst_db",
+            "Port": 5432,
+            "MaintenanceDB": "pgpublisher",
+            "Username": "pgpublisher",
+            "SSLMode": "disable",
+            "PassFile": "/pgpassfile"
+        }
+    }
+}

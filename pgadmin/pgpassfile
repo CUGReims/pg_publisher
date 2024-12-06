@@ -1,0 +1,2 @@
+src_db:5432:*:pgpublisher:pgpublisher
+dst_db:5432:*:pgpublisher:pgpublisher
