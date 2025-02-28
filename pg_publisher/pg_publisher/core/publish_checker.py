@@ -165,9 +165,9 @@ def can_publish_to_dst_server(
                     ),
                 )
     return {
-        "can_publish": True
-        if len(schema_errors) == 0 and len(table_view_errors) == 0
-        else False,
+        "can_publish": (
+            True if len(schema_errors) == 0 and len(table_view_errors) == 0 else False
+        ),
         "schema_errors": list(set(schema_errors)),
         "schema_warnings": list(set(schema_warnings)),
         "schema_dependencies_depublish": schema_dependencies_depublish,

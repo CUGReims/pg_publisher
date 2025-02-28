@@ -30,7 +30,7 @@ docker-build-publisher:
 	docker build -t camptocamp/pg_publisher:latest pg_publisher
 
 checks: ## Run linting
-	$(DOCKER_RUN_CMD) flake8 /src/pg_publisher
+	$(DOCKER_RUN_CMD) sh -c 'cd /src/pg_publisher && flake8'
 	$(DOCKER_RUN_CMD) black --check /src/pg_publisher
 
 black: ## Run black formatter

@@ -1,4 +1,5 @@
 """Console script for pg_publisher."""
+
 import sys
 import click
 import questionary
