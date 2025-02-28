@@ -18,7 +18,7 @@ build: ## Build docker images
 build: docker-build-publisher
 
 dist:
-	docker compose run --rm --user `id -u`:`id -g` tester sh -c "cd /src && pyinstaller --clean /src/cli.spec"
+	docker compose run --rm --user `id -u`:`id -g` tester sh -c "cd /src && pyinstaller --clean /src/all.spec"
 	chmod +x pg_publisher/dist/cli
 
 package: dist
