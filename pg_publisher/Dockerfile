@@ -1,4 +1,4 @@
-FROM python:3.8-bullseye
+FROM python:3.12.9-slim-bookworm
 
 RUN --mount=type=cache,target=/var/lib/apt/lists \
     --mount=type=cache,target=/var/cache,sharing=locked \
