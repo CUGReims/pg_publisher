@@ -49,7 +49,7 @@ make tests
 
 Create a git tag first then:
 
-```
+```shell
 make package
 ```
 
@@ -57,15 +57,24 @@ Which will create the file named `pg_publisher-$(TAG)-linux-amd64.tar.gz`.
 
 ### For Windows
 
-Comment psycopg2-binary in requirements.txt, then:
+Comment `psycopg2-binary` in `requirements.txt`, then:
 
-```
+#### Windows
+
+```bat
 pip install pipwin
 pipwin install psycopg2
 
 cd pg_publisher
 pip install -e .
-pyinstaller --clean ./cli.spec
+pyinstaller --clean ./all.spec
+```
+
+Test executable:
+
+```bat
+.\dist\cli.exe
+.\dist\cli_direct.exe
 ```
 
 Now you can rename dist folder to something like `pg_publisher-v0.1.0-alpha2-windows-amd64`
